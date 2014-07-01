@@ -23,6 +23,8 @@ import org.springframework.web.servlet.View;
  * @author a.kohlbecker
  * @date Jun 27, 2014
  *
+ * FIXME: not needed at the moment, consider deletion
+ *
  */
 public class XmlView implements View {
 

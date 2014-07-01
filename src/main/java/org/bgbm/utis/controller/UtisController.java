@@ -30,7 +30,7 @@ import org.bgbm.biovel.drf.utils.TnrMsgUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -85,7 +85,7 @@ public class UtisController {
 
 
     @RequestMapping("/search")
-    public ModelAndView search(
+    public @ResponseBody TnrMsg search(
             @RequestParam(value = "query", required = false) String query,
             @RequestParam(value = "providers", required = false) String providers,
             HttpServletRequest request,
@@ -118,20 +118,26 @@ public class UtisController {
             client.queryChecklist(tnrMsg);
         }
 
-        ModelAndView mv = new ModelAndView();
-        mv.addObject("tnrMsgs", tnrMsgs);
-        return mv;
+        return tnrMsg;
+
+//        ModelAndView mv = new ModelAndView();
+//        mv.addObject("tnrMsgs", tnrMsgs);
+//        return mv;
 
     }
 
     @RequestMapping("/capabilities")
-    public ModelAndView capabilities(HttpServletRequest request,
+    public @ResponseBody List<ServiceProviderInfo> capabilities(HttpServletRequest request,
             HttpServletResponse response) throws DRFChecklistException {
         String message = "<h3>Service providers Capabilities</h3>";
-        List<ServiceProviderInfo> cil = ServiceProviderInfoUtils.generateChecklistInfoList();
-        ModelAndView mv = new ModelAndView();
-        mv.addObject("infoList", cil);
-        return mv;
+//        List<ServiceProviderInfo> cil = ServiceProviderInfoUtils.generateChecklistInfoList();
+
+        return defaultProviders;
+
+//        ModelAndView mv = new ModelAndView();
+//        mv.addObject("infoList", cil);
+//        return mv;
+
     }
 
 }
