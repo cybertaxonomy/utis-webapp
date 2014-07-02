@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.wordnik.swagger.annotations.ApiParam;
 
 /**
  * @author a.kohlbecker
@@ -53,13 +54,12 @@ public class UtisController {
         initProviderMap();
     }
 
-
     /**
      *
      */
     private void initProviderMap() {
         this.checklistInfoMap = new HashMap<String, ServiceProviderInfo>();
-        for(ServiceProviderInfo info : ServiceProviderInfoUtils.generateChecklistInfoList()){
+        for (ServiceProviderInfo info : ServiceProviderInfoUtils.generateChecklistInfoList()) {
             checklistInfoMap.put(info.getId(), info);
         }
 
@@ -67,12 +67,12 @@ public class UtisController {
         defaultProviders.add(checklistInfoMap.get(BgbmEditClient.ID));
     }
 
-    private BaseChecklistClient newClientFor(String id){
-        if(id.equals(PESIClient.ID)){
+    private BaseChecklistClient newClientFor(String id) {
+        if (id.equals(PESIClient.ID)) {
             return new PESIClient();
         }
 
-        if(id.equals(BgbmEditClient.ID)){
+        if (id.equals(BgbmEditClient.ID)) {
             try {
                 return new BgbmEditClient(JSONUtils.convertObjectToJson(checklistInfoMap.get(BgbmEditClient.ID)));
             } catch (DRFChecklistException e) {
@@ -84,26 +84,62 @@ public class UtisController {
         return null;
     }
 
-
-    @RequestMapping(method={RequestMethod.GET}, value="/search")
-    public @ResponseBody TnrMsg search(
-            @RequestParam(value = "query", required = false) String query,
-            @RequestParam(value = "providers", required = false) String providers,
-            HttpServletRequest request,
-            HttpServletResponse response) throws DRFChecklistException, JsonGenerationException, JsonMappingException, IOException {
+    /**
+     *
+     * @param query The complete canonical scientific name to search for. For
+     *          example: <code>Bellis perennis</code> or <code>Prionus</code>.
+     *          This is a exact search so wildcard characters are not supported.
+     *
+     * @param providers
+     *            A list of provider id strings concatenated by comma
+     *            characters. The default : <code>pesi,edit</code> will be used
+     *            if this parameter is not set. A list of all available provider
+     *            ids can be obtained from the <code>/capabilities</code> service
+     *            end point.
+     * @param request
+     * @param response
+     * @return
+     * @throws DRFChecklistException
+     * @throws JsonGenerationException
+     * @throws JsonMappingException
+     * @throws IOException
+     */
+    @RequestMapping(method = { RequestMethod.GET }, value = "/search")
+    public @ResponseBody
+    TnrMsg search(
+                @ApiParam(
+                    value = "The complete canonical scientific name to search for. "
+                    +"For example: \"Bellis perennis\" or \"Prionus\". "
+                    +"This is an exact search so wildcard characters are not supported."
+                    ,required=true)
+                @RequestParam(value = "query", required = false)
+                String query,
+                @ApiParam(value = "A list of provider id strings concatenated by comma "
+                    +"characters. The default : \"pesi,edit\" will be used "
+                    + "if this parameter is not set. A list of all available provider "
+                    +"ids can be obtained from the '/capabilities' service "
+                    +"end point.",
+                    defaultValue="pesi,edit",
+                    required=false)
+                @RequestParam(value = "providers", required = false)
+                String providers,
+                HttpServletRequest request,
+                HttpServletResponse response
+            ) throws DRFChecklistException, JsonGenerationException, JsonMappingException,
+            IOException {
 
         List<String> nameCompleteList;
 
         List<ServiceProviderInfo> providerList = defaultProviders;
-        if(providers != null){
+        if (providers != null) {
             String[] providerIdTokens = providers.split(",");
             providerList = new ArrayList<ServiceProviderInfo>();
-            for(String t : providerIdTokens){
+            for (String t : providerIdTokens) {
                 providerList.add(checklistInfoMap.get(t));
             }
         }
 
-        if(query == null) {
+        if (query == null) {
             query = "Bellis perennis";
         }
         nameCompleteList = new ArrayList<String>();
@@ -114,31 +150,17 @@ public class UtisController {
         List<TnrMsg> tnrMsgs = TnrMsgUtils.convertStringListToTnrMsgList(nameCompleteList);
         TnrMsg tnrMsg = TnrMsgUtils.mergeTnrMsgs(tnrMsgs);
 
-        for(ServiceProviderInfo info : providerList){
+        for (ServiceProviderInfo info : providerList) {
             BaseChecklistClient client = newClientFor(info.getId());
             client.queryChecklist(tnrMsg);
         }
 
         return tnrMsg;
-
-//        ModelAndView mv = new ModelAndView();
-//        mv.addObject("tnrMsgs", tnrMsgs);
-//        return mv;
-
     }
 
-    @RequestMapping(method={RequestMethod.GET}, value="/capabilities")
-    public @ResponseBody List<ServiceProviderInfo> capabilities(HttpServletRequest request,
-            HttpServletResponse response) throws DRFChecklistException {
-        String message = "<h3>Service providers Capabilities</h3>";
-//        List<ServiceProviderInfo> cil = ServiceProviderInfoUtils.generateChecklistInfoList();
-
+    @RequestMapping(method = { RequestMethod.GET }, value = "/capabilities")
+    public @ResponseBody List<ServiceProviderInfo> capabilities(HttpServletRequest request, HttpServletResponse response) {
         return defaultProviders;
-
-//        ModelAndView mv = new ModelAndView();
-//        mv.addObject("infoList", cil);
-//        return mv;
-
     }
 
 }
