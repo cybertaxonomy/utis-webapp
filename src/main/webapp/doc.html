@@ -48,7 +48,7 @@
       onFailure: function(data) {
         log("Unable to Load SwaggerUI");
       },
-      docExpansion: "none"
+      docExpansion: "true"
     });
 
     $('#input_apiKey').change(function() {
@@ -65,9 +65,11 @@
 </head>
 
 <body class="swagger-section">
-<div id='header'>
-<img src="images/eubon-banner.png"></div>
-<div id="description">The Unified Taxonomic Information Service (UTIS) is the taxonomic backbone for the EU-BON project</div>
+<div id="header">
+  <div id="banner">
+  <img src="images/eubon-banner.png">
+  </div>
+</div>
 <div id="content">
   <div id="message-bar" class="swagger-ui-wrap">&nbsp;</div>
   <div id="swagger-ui-container" class="swagger-ui-wrap"></div>

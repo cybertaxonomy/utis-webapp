@@ -3,11 +3,14 @@ body.swagger-section #header {
   background-color:#34998a;
 }
 
-#description {
-  padding:10px 50px;
-  background-color:#99dbd6;
+#header #banner{
+  margin-left:auto;
+  margin-right:auto;
+  max-width: 960px;
 }
 
-#content {
-  padding:10px 50px;
+#description {
+  padding-top:10px;
+  padding-bottom:10px;
+  background-color:#99dbd6;
 }
