@@ -48,6 +48,7 @@ public class SpringMVCConfig extends WebMvcConfigurerAdapter {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
       registry.addResourceHandler(WEB_JAR_RESOURCE_PATTERNS)
+              .addResourceLocations("/")
               .addResourceLocations(WEB_JAR_RESOURCE_LOCATION).setCachePeriod(0);
     }
 
