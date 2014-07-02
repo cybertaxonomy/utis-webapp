@@ -12,6 +12,7 @@
   <properties>
     <spring.version>3.2.2.RELEASE</spring.version>
     <jackson.version>2.2.3</jackson.version>
+    <java.codelevel>1.6</java.codelevel>
   </properties>
 
   <repositories>
@@ -73,7 +74,7 @@
       <!-- required for spring config element <mvc:annotation-driven /> -->
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-validator</artifactId>
-      <version>5.1.1.Final</version>
+      <version>4.3.1.Final</version><!-- 5.1.1.Final -->
     </dependency>
 
     <!-- dependencies for swagger-springmvc, added explicitely -->
@@ -96,6 +97,18 @@
 
   <build>
     <finalName>eubon-utis</finalName>
+      <plugins>
+        <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+            <source>${java.codelevel}</source>
+            <target>${java.codelevel}</target>
+            <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 
 </project>
