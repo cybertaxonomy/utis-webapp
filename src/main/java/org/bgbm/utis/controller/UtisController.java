@@ -29,6 +29,7 @@ import org.bgbm.biovel.drf.utils.ServiceProviderInfoUtils;
 import org.bgbm.biovel.drf.utils.TnrMsgUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -84,7 +85,7 @@ public class UtisController {
     }
 
 
-    @RequestMapping("/search")
+    @RequestMapping(method={RequestMethod.GET}, value="/search")
     public @ResponseBody TnrMsg search(
             @RequestParam(value = "query", required = false) String query,
             @RequestParam(value = "providers", required = false) String providers,
@@ -126,7 +127,7 @@ public class UtisController {
 
     }
 
-    @RequestMapping("/capabilities")
+    @RequestMapping(method={RequestMethod.GET}, value="/capabilities")
     public @ResponseBody List<ServiceProviderInfo> capabilities(HttpServletRequest request,
             HttpServletResponse response) throws DRFChecklistException {
         String message = "<h3>Service providers Capabilities</h3>";

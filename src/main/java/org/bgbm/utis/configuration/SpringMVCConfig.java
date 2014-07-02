@@ -24,6 +24,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import com.mangofactory.swagger.configuration.SpringSwaggerConfig;
 import com.mangofactory.swagger.plugin.EnableSwagger;
 import com.mangofactory.swagger.plugin.SwaggerSpringMvcPlugin;
+import com.wordnik.swagger.model.ApiInfo;
 
 /**
  * @author a.kohlbecker
@@ -87,8 +88,22 @@ public class SpringMVCConfig extends WebMvcConfigurerAdapter {
    public SwaggerSpringMvcPlugin customImplementation(){
        // includePatterns: If not supplied a single pattern ".*?" is used by SwaggerSpringMvcPlugin
        // which matches anything and hence all RequestMappings. Here we define it explicitely
-      return new SwaggerSpringMvcPlugin(this.springSwaggerConfig).includePatterns(".*?");
+      return new SwaggerSpringMvcPlugin(this.springSwaggerConfig)
+              .apiInfo(apiInfo()).
+              includePatterns(".*?");
    }
+
+   private ApiInfo apiInfo() {
+       ApiInfo apiInfo = new ApiInfo(
+               "EU-BON Utis",
+               "The Unified Taxonomic Information Service (UTIS) is the taxonomic backbone for the EU-BON project",
+               "UTIS API terms of service",
+               "EditSupport@bgbm.org",
+               "Mozilla Public License 2.0",
+               "http://www.mozilla.org/MPL/2.0/"
+         );
+       return apiInfo;
+     }
 
 
 }

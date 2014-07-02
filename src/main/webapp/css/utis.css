@@ -1,0 +1,13 @@
+body.swagger-section #header {
+  padding:0 50px;
+  background-color:#34998a;
+}
+
+#description {
+  padding:10px 50px;
+  background-color:#99dbd6;
+}
+
+#content {
+  padding:10px 50px;
+}
