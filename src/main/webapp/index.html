@@ -21,13 +21,40 @@
   <img src="images/eubon-banner.png">
   </div>
 </div>
-<div id="description"><div class="swagger-ui-wrap">The Unified Taxonomic Information Service (UTIS) is the taxonomic backbone for the EU-BON project</div></div>
-<div id="content" class="swagger-ui-wrap">
+  <div id="description">
+    <div class="swagger-ui-wrap">
+      <h1>EU-BON taxonomic backbone</h1>
+      The Unified Taxonomic Information Service (UTIS) is the taxonomic
+      backbone for the EU-BON project
+    </div>
+  </div>
+  <div id="content" class="swagger-ui-wrap">
 <p>
 </p>
+<p>
+<div>The <a href="http://eubon.eu/">EU-BON</a> Taxonomic backbone allows running a federated
+search on multiple European checklists and returns a unified result set of the various individual responses.
+The current implementation of the UTIS is still a prototype, it connects the web services of the
+<a href="http://www.eu-nomen.eu">Pan-European Species directories Infrastructure, PESI</a> and CoL,
+the <a href="http://www.catalogueoflife.org/">Catalogue of Life</a>. In future it will connect more
+data providers like <a href="http://www.eea.europa.eu/themes/biodiversity/eunis/eunis-db">EUNIS</a>
+and <a href="http://www.eea.europa.eu/data-and-maps/data/natura-5">Natura2000</a> in order to be compliant
+with the <a href="http://inspire.ec.europa.eu/documents/Data_Specifications/INSPIRE_DataSpecification_SD_v3.0rc3.pdf">INSPIRE directive</a>.
+Currently it is possible to <strong>search for taxa and synonyms by an exact scientific name string</strong>.
+In case of matching synonyms the related accepted taxa are resolved. The search results always include
+information on the classification and on related taxa so far as this data is delivers by the connects provides.
+More search modes like fuzzy matching, search by vernacular names will be made available.</div>
+</p>
+
 <p>
   <a href="doc.html">Documentation of the RESTful UTIS service api.</a>
 </p>
+
+<p><div>The service is being developed by the <a href="http://www.bgbm.org/de/wissenschaft-biodiversitaetsinformatik">Department of Research and Biodiversity Informatics</a> of the Botanic Garden and Botanical Museum Berlin-Dahlem.</div></p>
 </div>
+<div id="footer">
+<a href="http://eubon.eu/" title=""><img src="images/eubon-logo.jpeg" alt="EU-BON Logo"></a>
+<a href="http://www.fu-berlin.de/" title=""><img src="images/fu_logo.gif" alt="Fu-berlin logo"></a>
+<a href="http://www.bgbm.org" title=""><img src="images/logo_bgbm.jpg" alt="BGBM logo"></a></div>
 </body>
 </html>
