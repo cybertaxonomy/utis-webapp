@@ -44,6 +44,7 @@ import com.wordnik.swagger.annotations.ApiParam;
  */
 
 @Controller
+@RequestMapping(produces={"application/json","application/xml"}) // produces is needed for swagger)
 public class UtisController {
 
     private Map<String, ServiceProviderInfo> checklistInfoMap;
@@ -104,7 +105,7 @@ public class UtisController {
      * @throws JsonMappingException
      * @throws IOException
      */
-    @RequestMapping(method = { RequestMethod.GET }, value = "/search", produces={"application/json","application/xml"})
+    @RequestMapping(method = { RequestMethod.GET }, value = "/search")
     public @ResponseBody
     TnrMsg search(
                 @ApiParam(
