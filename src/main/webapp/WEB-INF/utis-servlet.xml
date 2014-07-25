@@ -11,39 +11,10 @@
     http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
     <!--
-        component scan to help find the SpringMVCConfig.class
-        further component scans are defined there
+        component scan to help find the SpringMVCConfig.class which
+        actually is the primary spring configuration
+        further component scans are defined in this class
      -->
     <context:component-scan base-package="org.bgbm.utis.configuration" />
-
-<!-- multi view resolution may be needed in the future to setup a jsp front-end :
-
-  <bean
-    class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
-    <property name="mediaTypes">
-      <map>
-        <entry key="html" value="text/html" />
-        <entry key="json" value="application/json" />
-      </map>
-    </property>
-    <property name="viewResolvers">
-      <list>
-        <bean id="xmlViewResolver"
-          class="org.springframework.web.servlet.view.XmlViewResolver">
-          <property name="order" value="1" />
-          <property name="location" value="/WEB-INF/views.xml" />
-        </bean>
-        <bean id="viewResolver"
-          class="org.springframework.web.servlet.view.UrlBasedViewResolver">
-          <property name="viewClass"
-            value="org.springframework.web.servlet.view.JstlView" />
-          <property name="prefix" value="/WEB-INF/jsp/" />
-          <property name="suffix" value=".jsp" />
-        </bean>
-      </list>
-    </property>
-  </bean>
- -->
-
 </beans>
 

@@ -104,7 +104,7 @@ public class UtisController {
      * @throws JsonMappingException
      * @throws IOException
      */
-    @RequestMapping(method = { RequestMethod.GET }, value = "/search")
+    @RequestMapping(method = { RequestMethod.GET }, value = "/search", produces={"application/json","application/xml"})
     public @ResponseBody
     TnrMsg search(
                 @ApiParam(
