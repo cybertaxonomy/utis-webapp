@@ -27,6 +27,8 @@ import org.bgbm.biovel.drf.tnr.msg.TnrMsg;
 import org.bgbm.biovel.drf.utils.JSONUtils;
 import org.bgbm.biovel.drf.utils.ServiceProviderInfoUtils;
 import org.bgbm.biovel.drf.utils.TnrMsgUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -107,9 +109,9 @@ public class UtisController {
      */
     @RequestMapping(method = { RequestMethod.GET }, value = "/search")
     public @ResponseBody
-    TnrMsg search(
+    ResponseEntity<TnrMsg> search(
                 @ApiParam(
-                    value = "The complete canonical scientific name to search for. "
+                    value = "The scientific name to search for. "
                     +"For example: \"Bellis perennis\" or \"Prionus\". "
                     +"This is an exact search so wildcard characters are not supported."
                     ,required=true)
@@ -136,7 +138,12 @@ public class UtisController {
             String[] providerIdTokens = providers.split(",");
             providerList = new ArrayList<ServiceProviderInfo>();
             for (String t : providerIdTokens) {
-                providerList.add(checklistInfoMap.get(t));
+                if(checklistInfoMap.containsKey(t)){
+                    providerList.add(checklistInfoMap.get(t));
+                }
+            }
+            if(providerList.isEmpty()){
+                return new ResponseEntity("invalid value for request parameter 'providers' given: " + defaultProviders.toString(), HttpStatus.BAD_REQUEST);
             }
         }
 
@@ -156,12 +163,18 @@ public class UtisController {
             client.queryChecklist(tnrMsg);
         }
 
-        return tnrMsg;
+        return new ResponseEntity<TnrMsg>(tnrMsg, HttpStatus.OK);
     }
 
     @RequestMapping(method = { RequestMethod.GET }, value = "/capabilities")
     public @ResponseBody List<ServiceProviderInfo> capabilities(HttpServletRequest request, HttpServletResponse response) {
         return defaultProviders;
     }
+
+//    @RequestMapping(method = { RequestMethod.GET }, value = "/modelAndView")
+//    public List<ServiceProviderInfo> modelAndView(HttpServletRequest request, HttpServletResponse response) {
+//        return null;
+//    }
+
 
 }
