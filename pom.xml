@@ -82,7 +82,7 @@
     <dependency>
       <groupId>com.mangofactory</groupId>
       <artifactId>swagger-springmvc</artifactId>
-      <version>0.8.5-SNAPSHOT</version><!-- 0.8.4, 0.8.5-SNAPSHOT -->
+      <version>0.9.1</version><!-- 0.8.4, 0.8.5-SNAPSHOT, 0.9.1 -->
     </dependency>
 
     <dependency>
