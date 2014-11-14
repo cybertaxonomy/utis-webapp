@@ -109,7 +109,7 @@ public class UtisController {
      */
     @RequestMapping(method = { RequestMethod.GET }, value = "/search")
     public @ResponseBody
-    ResponseEntity<TnrMsg> search(
+    TnrMsg search(
                 @ApiParam(
                     value = "The scientific name to search for. "
                     +"For example: \"Bellis perennis\" or \"Prionus\". "
@@ -143,7 +143,7 @@ public class UtisController {
                 }
             }
             if(providerList.isEmpty()){
-                return new ResponseEntity("invalid value for request parameter 'providers' given: " + defaultProviders.toString(), HttpStatus.BAD_REQUEST);
+                response.sendError(HttpStatus.BAD_REQUEST.value(), "invalid value for request parameter 'providers' given: " + defaultProviders.toString());
             }
         }
 
@@ -163,7 +163,7 @@ public class UtisController {
             client.queryChecklist(tnrMsg);
         }
 
-        return new ResponseEntity<TnrMsg>(tnrMsg, HttpStatus.OK);
+        return tnrMsg;
     }
 
     @RequestMapping(method = { RequestMethod.GET }, value = "/capabilities")
