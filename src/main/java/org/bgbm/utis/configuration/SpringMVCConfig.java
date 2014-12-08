@@ -196,9 +196,9 @@ public class SpringMVCConfig extends WebMvcConfigurerAdapter {
 
    private ApiInfo apiInfo() {
        ApiInfo apiInfo = new ApiInfo(
-               "EU-BON Utis",
+               "EU BON UTIS",
                "The Unified Taxonomic Information Service (UTIS) is the taxonomic backbone for the EU-BON project",
-               "UTIS API terms of service",
+               "https://www.biodiversitycatalogue.org/services/79",
                "EditSupport@bgbm.org",
                "Mozilla Public License 2.0",
                "http://www.mozilla.org/MPL/2.0/"
