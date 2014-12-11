@@ -21,7 +21,8 @@
   <Loggers>
     <Logger name="org.apache.log4j.xml" level="info"/>
     <Logger name="com.mangofactory.swagger" level="debug"/>
-<!--     <Logger name="org.springframework.web.servlet.view" level="debug"/> -->
+    <Logger name="org.bgbm.utis" level="debug"/>
+    <Logger name="org.springframework.web.servlet.view" level="debug"/>
     <Root level="info">
       <AppenderRef ref="STDOUT"/>
     </Root>
