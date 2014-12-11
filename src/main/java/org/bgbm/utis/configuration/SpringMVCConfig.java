@@ -17,10 +17,12 @@ import javax.servlet.ServletContext;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bgbm.biovel.drf.tnr.msg.TaxonNameType;
+import org.bgbm.biovel.drf.tnr.msg.Classification;
+import org.bgbm.biovel.drf.tnr.msg.TaxonName;
 import org.bgbm.biovel.drf.tnr.msg.TnrMsg;
 import org.bgbm.biovel.drf.tnr.msg.TnrMsg.Query.TnrRequest;
 import org.bgbm.biovel.drf.tnr.msg.TnrResponse;
+import org.bgbm.utis.jackson.ClassificationMixIn;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -122,52 +124,56 @@ public class SpringMVCConfig extends WebMvcConfigurerAdapter {
        resolver.setContentNegotiationManager(manager);
        resolver.setViewResolvers(resolvers);
        return resolver;
-       }
+   }
 
 
-       private ViewResolver getXmlViewResolver() {
-           XmlViewResolver resolver = new XmlViewResolver();
-           resolver.setLocation(new ServletContextResource(servletContext, "/WEB-INF/views.xml"));
-           return resolver;
-       }
+    private ViewResolver getXmlViewResolver() {
+        XmlViewResolver resolver = new XmlViewResolver();
+        resolver.setLocation(new ServletContextResource(servletContext, "/WEB-INF/views.xml"));
+        return resolver;
+    }
 
-       private ViewResolver getJsonViewResolver() {
-           return new ViewResolver() {
+    private ViewResolver getJsonViewResolver() {
+        return new ViewResolver() {
 
-                /**
-                * Get the view to use.
-                *
-                * @return Always returns an instance of {@link MappingJacksonJsonView}.
-                */
-                @Override
-                public View resolveViewName(String viewName, Locale locale) throws Exception {
-                    MappingJacksonJsonView view = new MappingJacksonJsonView();
-                    view.setPrettyPrint(true);
-                    return view;
-                }
-           };
-       }
-
-       /**
-        * @return
-        */
-       private ViewResolver getMarshallingXmlViewResolver() {
-
-           final Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
-
-           marshaller.setClassesToBeBound(TnrMsg.class, TnrRequest.class, TnrResponse.class, TaxonNameType.class);
-
-           return new ViewResolver() {
-
+            /**
+             * Get the view to use.
+             *
+             * @return Always returns an instance of
+             *         {@link MappingJacksonJsonView}.
+             */
             @Override
             public View resolveViewName(String viewName, Locale locale) throws Exception {
-                MarshallingView view = new MarshallingView();
-                view.setMarshaller(marshaller);
+                MappingJacksonJsonView view = new MappingJacksonJsonView();
+                view.setPrettyPrint(true);
+                view.getObjectMapper().getSerializationConfig()
+                        .addMixInAnnotations(Classification.class, ClassificationMixIn.class);
+
                 return view;
             }
+        };
+    }
 
-           };
-       }
+   /**
+    * @return
+    */
+   private ViewResolver getMarshallingXmlViewResolver() {
+
+       final Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
+
+       marshaller.setClassesToBeBound(TnrMsg.class, TnrRequest.class, TnrResponse.class, TaxonName.class);
+
+       return new ViewResolver() {
+
+        @Override
+        public View resolveViewName(String viewName, Locale locale) throws Exception {
+            MarshallingView view = new MarshallingView();
+            view.setMarshaller(marshaller);
+            return view;
+        }
+
+       };
+   }
 
 
 
@@ -195,16 +201,12 @@ public class SpringMVCConfig extends WebMvcConfigurerAdapter {
    }
 
    private ApiInfo apiInfo() {
-       ApiInfo apiInfo = new ApiInfo(
-               "EU BON UTIS",
-               "The Unified Taxonomic Information Service (UTIS) is the taxonomic backbone for the EU-BON project",
-               "https://www.biodiversitycatalogue.org/services/79",
-               "EditSupport@bgbm.org",
-               "Mozilla Public License 2.0",
-               "http://www.mozilla.org/MPL/2.0/"
-         );
-       return apiInfo;
-     }
+     ApiInfo apiInfo = new ApiInfo("EU BON UTIS",
+            "The Unified Taxonomic Information Service (UTIS) is the taxonomic backbone for the EU-BON project",
+            "https://www.biodiversitycatalogue.org/services/79", "EditSupport@bgbm.org",
+            "Mozilla Public License 2.0", "http://www.mozilla.org/MPL/2.0/");
+     return apiInfo;
+   }
 
 
 }
