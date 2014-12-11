@@ -93,7 +93,7 @@
     <dependency>
       <groupId>biovel.drf</groupId>
       <artifactId>drf-workflow</artifactId>
-      <version>1.0.5-SNAPSHOT</version>
+      <version>1.0.6-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.mangofactory</groupId>
@@ -146,8 +146,15 @@
           <war>${basedir}/target/eubon-utis.war</war>
         </configuration>
       </plugin>
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-eclipse-plugin</artifactId>
+          <version>2.9</version>
+          <configuration>
+              <downloadSources>true</downloadSources>
+              <downloadJavadocs>true</downloadJavadocs>
+          </configuration>
+      </plugin>
     </plugins>
   </build>
-
-
 </project>
