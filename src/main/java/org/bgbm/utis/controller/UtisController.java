@@ -25,11 +25,14 @@ import org.bgbm.biovel.drf.checklist.BaseChecklistClient;
 import org.bgbm.biovel.drf.checklist.BgbmEditClient;
 import org.bgbm.biovel.drf.checklist.DRFChecklistException;
 import org.bgbm.biovel.drf.checklist.PESIClient;
+import org.bgbm.biovel.drf.checklist.WoRMSClient;
 import org.bgbm.biovel.drf.rest.TaxoRESTClient.ServiceProviderInfo;
 import org.bgbm.biovel.drf.tnr.msg.TnrMsg;
 import org.bgbm.biovel.drf.utils.JSONUtils;
 import org.bgbm.biovel.drf.utils.ServiceProviderInfoUtils;
 import org.bgbm.biovel.drf.utils.TnrMsgUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -52,6 +55,8 @@ import com.wordnik.swagger.annotations.ApiParam;
 @RequestMapping(produces={"application/json","application/xml"}) // produces is needed for swagger)
 public class UtisController {
 
+    protected Logger logger = LoggerFactory.getLogger(UtisController.class);
+
     private Map<String, ServiceProviderInfo> checklistInfoMap;
 
     private final List<ServiceProviderInfo> defaultProviders = new ArrayList<ServiceProviderInfo>();
@@ -71,6 +76,7 @@ public class UtisController {
 
         defaultProviders.add(checklistInfoMap.get(PESIClient.ID));
         defaultProviders.add(checklistInfoMap.get(BgbmEditClient.ID));
+        defaultProviders.add(checklistInfoMap.get(WoRMSClient.ID));
     }
 
     private BaseChecklistClient newClientFor(String id) {
@@ -86,14 +92,20 @@ public class UtisController {
                 e.printStackTrace();
             }
         }
-        System.err.println("Unsupported Client ID");
+
+        if (id.equals(WoRMSClient.ID)) {
+            return new WoRMSClient();
+        }
+
+        logger.error("Unsupported Client ID: "+ id);
         return null;
     }
 
     /**
      *
      * @param query The complete canonical scientific name to search for. For
-     *          example: <code>Bellis perennis</code> or <code>Prionus</code>.
+     *          example: <code>Bellis perennis</code>, <code>Prionus</code> or
+     *          <code>Bolinus brandaris</code>.
      *          This is a exact search so wildcard characters are not supported.
      *
      * @param providers
@@ -115,7 +127,7 @@ public class UtisController {
     TnrMsg search(
                 @ApiParam(
                     value = "The scientific name to search for. "
-                    +"For example: \"Bellis perennis\" or \"Prionus\". "
+                    +"For example: \"Bellis perennis\", \"Prionus\" or \"Bolinus brandaris\". "
                     +"This is an exact search so wildcard characters are not supported."
                     ,required=true)
                 @RequestParam(value = "query", required = false)
@@ -170,9 +182,6 @@ public class UtisController {
             }
         }
 
-        if (query == null) {
-            query = "Bellis perennis";
-        }
         nameCompleteList = new ArrayList<String>();
         nameCompleteList.add(query);
 
@@ -183,7 +192,10 @@ public class UtisController {
 
         for (ServiceProviderInfo info : providerList) {
             BaseChecklistClient client = newClientFor(info.getId());
-            client.queryChecklist(tnrMsg);
+            if(client != null){
+                logger.debug("sending query to " + info.getId());
+                client.queryChecklist(tnrMsg);
+            }
         }
 
         return tnrMsg;
@@ -209,11 +221,6 @@ public class UtisController {
     public @ResponseBody List<ServiceProviderInfo> capabilities(HttpServletRequest request, HttpServletResponse response) {
         return defaultProviders;
     }
-
-//    @RequestMapping(method = { RequestMethod.GET }, value = "/modelAndView")
-//    public List<ServiceProviderInfo> modelAndView(HttpServletRequest request, HttpServletResponse response) {
-//        return null;
-//    }
 
 
 }
