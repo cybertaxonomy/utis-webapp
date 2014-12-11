@@ -11,9 +11,12 @@ package org.bgbm.utis.controller;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -118,11 +121,15 @@ public class UtisController {
                 @RequestParam(value = "query", required = false)
                 String query,
                 @ApiParam(value = "A list of provider id strings concatenated by comma "
-                    +"characters. The default : \"pesi,edit\" will be used "
+                    +"characters. The default : \"pesi,bgbm-cdm-server[col]\" will be used "
                     + "if this parameter is not set. A list of all available provider "
                     +"ids can be obtained from the '/capabilities' service "
-                    +"end point.",
-                    defaultValue="pesi,edit",
+                    +"end point."
+                    + "Providers can be nested, that is a parent provider can have "
+                    + "sub providers. If the id of the parent provider is supplied all subproviders will "
+                    + "be queried. The query can also be restriced to one or more subproviders by "
+                    + "using the following syntax: parent-id[sub-id-1,sub-id2,...]",
+                    defaultValue="pesi,bgbm-cdm-server[col]",
                     required=false)
                 @RequestParam(value = "providers", required = false)
                 String providers,
@@ -137,9 +144,25 @@ public class UtisController {
         if (providers != null) {
             String[] providerIdTokens = providers.split(",");
             providerList = new ArrayList<ServiceProviderInfo>();
-            for (String t : providerIdTokens) {
-                if(checklistInfoMap.containsKey(t)){
-                    providerList.add(checklistInfoMap.get(t));
+            for (String id : providerIdTokens) {
+
+                List<String> subproviderIds = parsSubproviderIds(id);
+                if(!subproviderIds.isEmpty()){
+                    id = id.substring(0, id.indexOf("["));
+                }
+
+                if(checklistInfoMap.containsKey(id)){
+                    ServiceProviderInfo provider = checklistInfoMap.get(id);
+                    if(!subproviderIds.isEmpty()){
+                        Collection<ServiceProviderInfo> removeCandidates = new ArrayList<ServiceProviderInfo>();
+                        for(ServiceProviderInfo subProvider : provider.getSubChecklists()){
+                            if(!subproviderIds.contains(subProvider.getId())){
+                                removeCandidates.add(subProvider);
+                            }
+                        }
+                        provider.getSubChecklists().removeAll(removeCandidates);
+                    }
+                    providerList.add(provider);
                 }
             }
             if(providerList.isEmpty()){
@@ -164,6 +187,22 @@ public class UtisController {
         }
 
         return tnrMsg;
+    }
+
+    private List<String> parsSubproviderIds(String id) {
+
+        List<String> subIds = new ArrayList<String>();
+        Pattern pattern = Pattern.compile("^.*\\[([\\w,]*)\\]$");
+
+        Matcher m = pattern.matcher(id);
+        if (m.matches()) {
+            String subids = m.group(1);
+            String[] subidTokens = subids.split(",");
+            for (String subId : subidTokens) {
+                subIds.add(subId);
+            }
+        }
+        return subIds;
     }
 
     @RequestMapping(method = { RequestMethod.GET }, value = "/capabilities")
