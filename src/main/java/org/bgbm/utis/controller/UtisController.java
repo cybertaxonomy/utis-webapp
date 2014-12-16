@@ -10,6 +10,7 @@
 package org.bgbm.utis.controller;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -26,8 +27,10 @@ import org.bgbm.biovel.drf.checklist.BgbmEditClient;
 import org.bgbm.biovel.drf.checklist.DRFChecklistException;
 import org.bgbm.biovel.drf.checklist.PESIClient;
 import org.bgbm.biovel.drf.checklist.WoRMSClient;
+import org.bgbm.biovel.drf.rest.TaxoRESTClient;
 import org.bgbm.biovel.drf.rest.TaxoRESTClient.ServiceProviderInfo;
 import org.bgbm.biovel.drf.tnr.msg.TnrMsg;
+import org.bgbm.biovel.drf.tnr.msg.TnrResponse;
 import org.bgbm.biovel.drf.utils.JSONUtils;
 import org.bgbm.biovel.drf.utils.ServiceProviderInfoUtils;
 import org.bgbm.biovel.drf.utils.TnrMsgUtils;
@@ -145,6 +148,11 @@ public class UtisController {
                     required=false)
                 @RequestParam(value = "providers", required = false)
                 String providers,
+                @ApiParam(value = "The most millis milliseconds to wait for resones from any of the providers. "
+                        + "If the timeout is exceeded the service will jut return the resonses that have been "
+                        + "received so far. The default timeout is 0 ms (wait for ever)")
+                @RequestParam(value = "timeout", required = false, defaultValue="0")
+                Long timeout,
                 HttpServletRequest request,
                 HttpServletResponse response
             ) throws DRFChecklistException, JsonGenerationException, JsonMappingException,
@@ -190,13 +198,80 @@ public class UtisController {
         List<TnrMsg> tnrMsgs = TnrMsgUtils.convertStringListToTnrMsgList(nameCompleteList);
         TnrMsg tnrMsg = TnrMsgUtils.mergeTnrMsgs(tnrMsgs);
 
+        // query all providers
+        List<ChecklistClientRunner> runners = new ArrayList<ChecklistClientRunner>(providerList.size());
         for (ServiceProviderInfo info : providerList) {
             BaseChecklistClient client = newClientFor(info.getId());
             if(client != null){
                 logger.debug("sending query to " + info.getId());
-                client.queryChecklist(tnrMsg);
+                ChecklistClientRunner runner = new ChecklistClientRunner(client, tnrMsg);
+                runner.start();
+                runners.add(runner);
             }
         }
+
+        // wait for the responses
+        logger.debug("All runners started, now waiting for them to complete ...");
+        for(ChecklistClientRunner runner : runners){
+            try {
+                logger.debug("waiting for client runner '" + runner.getClient());
+                runner.join(timeout);
+            } catch (InterruptedException e) {
+                logger.debug("client runner '" + runner.getClient() + "' was interrupted", e);
+            }
+        }
+        logger.debug("end of waiting (all runners completed or timed out)");
+
+        // collect, re-order the responses and set the status
+        List<TnrResponse> tnrResponses = tnrMsg.getQuery().get(0).getTnrResponse(); // TODO HACK: we only are treating one query
+        List<TnrResponse> tnrResponsesOrderd = new ArrayList<TnrResponse>(tnrResponses.size());
+
+        for(ChecklistClientRunner runner : runners){
+            ServiceProviderInfo info = runner.getClient().getServiceProviderInfo();
+            TnrResponse tnrrMatch = null;
+            if(runner.isInterrupted()){
+                logger.debug("client runner '" + runner.getClient() + "' was interrupted");
+                tnrrMatch = TnrMsgUtils.tnrResponseFor(info);
+                tnrrMatch.setStatus("interrupted");
+            }
+            else
+            if(runner.isAlive()){
+                logger.debug("client runner '" + runner.getClient() + "' has timed out");
+                tnrrMatch = TnrMsgUtils.tnrResponseFor(info);
+                tnrrMatch.setStatus("timeout");
+            }
+            else {
+
+                List<ServiceProviderInfo> subChecklistInfos;
+                if(info.getSubChecklists() != null && !info.getSubChecklists().isEmpty()){
+                    // for subchecklists we will have to look for responses of each of the subchecklists
+                    subChecklistInfos = info.getSubChecklists();
+                } else {
+                    // otherwise we only look for one response
+                    subChecklistInfos = new ArrayList<ServiceProviderInfo>(1);
+                    subChecklistInfos.add(info);
+                }
+                for(ServiceProviderInfo subInfo : subChecklistInfos){
+                    for(TnrResponse tnrr : tnrResponses){
+                        // TODO compare by id, requires model change
+                        if(subInfo.getLabel().equals(tnrr.getChecklist())){
+                            tnrrMatch = tnrr;
+                            tnrrMatch.setStatus("ok");
+                        }
+                    }
+                }
+                if(tnrrMatch == null){
+                    tnrrMatch = TnrMsgUtils.tnrResponseFor(info);
+                    // in case of no match, status is ok but result set is empty
+                    tnrrMatch.setStatus("ok");
+                }
+            }
+            tnrrMatch.setDuration(BigDecimal.valueOf(runner.getDuration()));
+            tnrResponsesOrderd.add(tnrrMatch);
+        }
+        tnrMsg.getQuery().get(0).getTnrResponse().clear();
+        tnrMsg.getQuery().get(0).getTnrResponse().addAll(tnrResponsesOrderd);
+
 
         return tnrMsg;
     }
