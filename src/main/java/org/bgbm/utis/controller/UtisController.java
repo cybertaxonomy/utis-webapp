@@ -13,9 +13,12 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,6 +29,7 @@ import org.bgbm.biovel.drf.checklist.BaseChecklistClient;
 import org.bgbm.biovel.drf.checklist.BgbmEditClient;
 import org.bgbm.biovel.drf.checklist.DRFChecklistException;
 import org.bgbm.biovel.drf.checklist.PESIClient;
+import org.bgbm.biovel.drf.checklist.SearchMode;
 import org.bgbm.biovel.drf.checklist.WoRMSClient;
 import org.bgbm.biovel.drf.rest.TaxoRESTClient;
 import org.bgbm.biovel.drf.rest.TaxoRESTClient.ServiceProviderInfo;
@@ -36,6 +40,9 @@ import org.bgbm.biovel.drf.utils.ServiceProviderInfoUtils;
 import org.bgbm.biovel.drf.utils.TnrMsgUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -46,6 +53,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.sun.xml.internal.ws.server.provider.ProviderInvokerTube;
 import com.wordnik.swagger.annotations.ApiParam;
 
 /**
@@ -60,21 +68,60 @@ public class UtisController {
 
     protected Logger logger = LoggerFactory.getLogger(UtisController.class);
 
-    private Map<String, ServiceProviderInfo> checklistInfoMap;
+    private Map<String, ChecklistInfo> checklistInfoMap;
+    private Map<String, Class<? extends BaseChecklistClient>> clientClassMap;
 
-    private final List<ServiceProviderInfo> defaultProviders = new ArrayList<ServiceProviderInfo>();
+    private final List<ChecklistInfo> defaultProviders = new ArrayList<ChecklistInfo>();
 
-    public UtisController() {
+    public UtisController() throws ClassNotFoundException {
         initProviderMap();
     }
 
+
+    public static <T extends TaxoRESTClient> Set<Class<T>> subclassesFor(Class<T> clazz) throws ClassNotFoundException{
+
+        Set<Class<T>> subClasses = new HashSet<Class<T>>();
+        ClassPathScanningCandidateComponentProvider provider = new ClassPathScanningCandidateComponentProvider(true);
+        provider.addIncludeFilter(new AssignableTypeFilter(clazz));
+
+        // scan only in org.bgbm.biovel.drf
+        Set<BeanDefinition> components = provider.findCandidateComponents("org/bgbm/biovel/drf");
+        for (BeanDefinition component : components)
+        {
+            subClasses.add((Class<T>) Class.forName(component.getBeanClassName()));
+        }
+        return subClasses;
+    }
+
     /**
+     * @throws ClassNotFoundException
      *
      */
-    private void initProviderMap() {
-        this.checklistInfoMap = new HashMap<String, ServiceProviderInfo>();
-        for (ServiceProviderInfo info : ServiceProviderInfoUtils.generateChecklistInfoList()) {
-            checklistInfoMap.put(info.getId(), info);
+    private void initProviderMap() throws ClassNotFoundException {
+
+        Set<Class<BaseChecklistClient>> checklistClients;
+        checklistClients = subclassesFor(BaseChecklistClient.class);
+
+        checklistInfoMap = new HashMap<String, ChecklistInfo>();
+        clientClassMap = new HashMap<String, Class<? extends BaseChecklistClient>>();
+
+        for(Class<BaseChecklistClient> clientClass: checklistClients){
+
+            BaseChecklistClient client;
+            try {
+                client = clientClass.newInstance();
+                ServiceProviderInfo info = client.buildServiceProviderInfo();
+
+                clientClassMap.put(info.getId(), clientClass);
+                checklistInfoMap.put(info.getId(), new ChecklistInfo(info, client.getSearchModes()));
+
+            } catch (InstantiationException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
 
         defaultProviders.add(checklistInfoMap.get(PESIClient.ID));
@@ -83,25 +130,25 @@ public class UtisController {
     }
 
     private BaseChecklistClient newClientFor(String id) {
-        if (id.equals(PESIClient.ID)) {
-            return new PESIClient();
-        }
 
-        if (id.equals(BgbmEditClient.ID)) {
+        BaseChecklistClient instance = null;
+
+        if(!clientClassMap.containsKey(id)){
+            logger.error("Unsupported Client ID: "+ id);
+
+        } else {
             try {
-                return new BgbmEditClient(JSONUtils.convertObjectToJson(checklistInfoMap.get(BgbmEditClient.ID)));
-            } catch (DRFChecklistException e) {
+                instance = clientClassMap.get(id).newInstance();
+            } catch (InstantiationException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
 
-        if (id.equals(WoRMSClient.ID)) {
-            return new WoRMSClient();
-        }
-
-        logger.error("Unsupported Client ID: "+ id);
-        return null;
+        return instance;
     }
 
     /**
@@ -148,6 +195,12 @@ public class UtisController {
                     required=false)
                 @RequestParam(value = "providers", required = false)
                 String providers,
+                @ApiParam(value = "Specifies the searchMode. "
+                        + "Possible search modes are: scientificNameExact, scientificNameLike, vernacularName. "
+                        + "If the a provider does not support the chosen searchMode it will be skiped and "
+                        + "the response status will be set to 'unsupported search mode'")
+                @RequestParam(value = "searchMode", required = false, defaultValue="scientificNameExact")
+                SearchMode searchMode,
                 @ApiParam(value = "The most millis milliseconds to wait for resones from any of the providers. "
                         + "If the timeout is exceeded the service will jut return the resonses that have been "
                         + "received so far. The default timeout is 0 ms (wait for ever)")
@@ -160,10 +213,10 @@ public class UtisController {
 
         List<String> nameCompleteList;
 
-        List<ServiceProviderInfo> providerList = defaultProviders;
+        List<ChecklistInfo> providerList = defaultProviders;
         if (providers != null) {
             String[] providerIdTokens = providers.split(",");
-            providerList = new ArrayList<ServiceProviderInfo>();
+            providerList = new ArrayList<ChecklistInfo>();
             for (String id : providerIdTokens) {
 
                 List<String> subproviderIds = parsSubproviderIds(id);
@@ -172,7 +225,7 @@ public class UtisController {
                 }
 
                 if(checklistInfoMap.containsKey(id)){
-                    ServiceProviderInfo provider = checklistInfoMap.get(id);
+                     ChecklistInfo provider = checklistInfoMap.get(id);
                     if(!subproviderIds.isEmpty()){
                         Collection<ServiceProviderInfo> removeCandidates = new ArrayList<ServiceProviderInfo>();
                         for(ServiceProviderInfo subProvider : provider.getSubChecklists()){
@@ -196,15 +249,18 @@ public class UtisController {
         List<TnrMsg> accumulatedTnrMsgs = new ArrayList<TnrMsg>(providerList.size());
 
         List<TnrMsg> tnrMsgs = TnrMsgUtils.convertStringListToTnrMsgList(nameCompleteList);
+        tnrMsgs.get(0).getQuery().get(0).getTnrRequest().setSearchMode(searchMode.toString());
+
         TnrMsg tnrMsg = TnrMsgUtils.mergeTnrMsgs(tnrMsgs);
+
 
         // query all providers
         List<ChecklistClientRunner> runners = new ArrayList<ChecklistClientRunner>(providerList.size());
-        for (ServiceProviderInfo info : providerList) {
+        for (ChecklistInfo info : providerList) {
             BaseChecklistClient client = newClientFor(info.getId());
             if(client != null){
                 logger.debug("sending query to " + info.getId());
-                ChecklistClientRunner runner = new ChecklistClientRunner(client, tnrMsg);
+                ChecklistClientRunner runner = new ChecklistClientRunner(client, tnrMsg, searchMode);
                 runner.start();
                 runners.add(runner);
             }
@@ -228,17 +284,24 @@ public class UtisController {
 
         for(ChecklistClientRunner runner : runners){
             ServiceProviderInfo info = runner.getClient().getServiceProviderInfo();
-            TnrResponse tnrrMatch = null;
+            TnrResponse tnrResponse = null;
+
             if(runner.isInterrupted()){
                 logger.debug("client runner '" + runner.getClient() + "' was interrupted");
-                tnrrMatch = TnrMsgUtils.tnrResponseFor(info);
-                tnrrMatch.setStatus("interrupted");
+                tnrResponse = TnrMsgUtils.tnrResponseFor(info);
+                tnrResponse.setStatus("interrupted");
             }
             else
             if(runner.isAlive()){
                 logger.debug("client runner '" + runner.getClient() + "' has timed out");
-                tnrrMatch = TnrMsgUtils.tnrResponseFor(info);
-                tnrrMatch.setStatus("timeout");
+                tnrResponse = TnrMsgUtils.tnrResponseFor(info);
+                tnrResponse.setStatus("timeout");
+            }
+            else
+            if(runner.isUnsupportedMode()){
+                logger.debug("client runner '" + runner.getClient() + "' : unsupported search mode");
+                tnrResponse = TnrMsgUtils.tnrResponseFor(info);
+                tnrResponse.setStatus("unsupported search mode");
             }
             else {
 
@@ -255,19 +318,19 @@ public class UtisController {
                     for(TnrResponse tnrr : tnrResponses){
                         // TODO compare by id, requires model change
                         if(subInfo.getLabel().equals(tnrr.getChecklist())){
-                            tnrrMatch = tnrr;
-                            tnrrMatch.setStatus("ok");
+                            tnrResponse = tnrr;
+                            tnrResponse.setStatus("ok");
                         }
                     }
                 }
-                if(tnrrMatch == null){
-                    tnrrMatch = TnrMsgUtils.tnrResponseFor(info);
+                if(tnrResponse == null){
+                    tnrResponse = TnrMsgUtils.tnrResponseFor(info);
                     // in case of no match, status is ok but result set is empty
-                    tnrrMatch.setStatus("ok");
+                    tnrResponse.setStatus("ok");
                 }
             }
-            tnrrMatch.setDuration(BigDecimal.valueOf(runner.getDuration()));
-            tnrResponsesOrderd.add(tnrrMatch);
+            tnrResponse.setDuration(BigDecimal.valueOf(runner.getDuration()));
+            tnrResponsesOrderd.add(tnrResponse);
         }
         tnrMsg.getQuery().get(0).getTnrResponse().clear();
         tnrMsg.getQuery().get(0).getTnrResponse().addAll(tnrResponsesOrderd);
@@ -293,7 +356,7 @@ public class UtisController {
     }
 
     @RequestMapping(method = { RequestMethod.GET }, value = "/capabilities")
-    public @ResponseBody List<ServiceProviderInfo> capabilities(HttpServletRequest request, HttpServletResponse response) {
+    public @ResponseBody List<ChecklistInfo> capabilities(HttpServletRequest request, HttpServletResponse response) {
         return defaultProviders;
     }
 
