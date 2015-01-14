@@ -281,8 +281,8 @@ public class UtisController {
         logger.debug("end of waiting (all runners completed or timed out)");
 
         // collect, re-order the responses and set the status
-        Query currentQuery = tnrMsg.getQuery().get(0);
-        List<TnrResponse> tnrResponses = currentQuery.getTnrResponse(); // TODO HACK: we only are treating one query
+        Query currentQuery = tnrMsg.getQuery().get(0); // TODO HACK: we only are treating one query
+        List<TnrResponse> tnrResponses = currentQuery.getTnrResponse();
         List<TnrResponse> tnrResponsesOrderd = new ArrayList<TnrResponse>(tnrResponses.size());
 
         for(ChecklistClientRunner runner : runners){
@@ -291,12 +291,6 @@ public class UtisController {
             TnrResponse tnrResponse = null;
 
             // --- handle all exception states and create one tnrResonse which will contain the status
-            /* TODO replace by a separate list of tnrClientStatus objects in the query object and ceate no tnrResonse in these cases:
-            // tnrClientStatus:
-            //   - statusMessage
-            //   - duration
-            //
-             */
             if(runner.isInterrupted()){
                 logger.debug("client runner '" + runner.getClient() + "' was interrupted");
                 tnrStatus.setStatusMessage("interrupted");
