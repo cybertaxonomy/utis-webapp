@@ -286,6 +286,13 @@ public class UtisController {
             ServiceProviderInfo info = runner.getClient().getServiceProviderInfo();
             TnrResponse tnrResponse = null;
 
+            // --- handle all exception states and create one tnrResonse which will contain the status
+            /* TODO replace by a separate list of tnrClientStatus objects in the query object and ceate no tnrResonse in these cases:
+            // tnrClientStatus:
+            //   - statusMessage
+            //   - duration
+            //
+             */
             if(runner.isInterrupted()){
                 logger.debug("client runner '" + runner.getClient() + "' was interrupted");
                 tnrResponse = TnrMsgUtils.tnrResponseFor(info);
@@ -305,32 +312,39 @@ public class UtisController {
             }
             else {
 
-                List<ServiceProviderInfo> subChecklistInfos;
+                // --- collect the ServiceProviderInfo objects by which the responses will be ordered
+                List<ServiceProviderInfo> checklistInfos;
                 if(info.getSubChecklists() != null && !info.getSubChecklists().isEmpty()){
                     // for subchecklists we will have to look for responses of each of the subchecklists
-                    subChecklistInfos = info.getSubChecklists();
+                    checklistInfos = info.getSubChecklists();
                 } else {
-                    // otherwise we only look for one response
-                    subChecklistInfos = new ArrayList<ServiceProviderInfo>(1);
-                    subChecklistInfos.add(info);
+                    // otherwise we only look for the responses of one checklist
+                    checklistInfos = new ArrayList<ServiceProviderInfo>(1);
+                    checklistInfos.add(info);
                 }
-                for(ServiceProviderInfo subInfo : subChecklistInfos){
+
+                // --- order the tnrResponses
+                for(ServiceProviderInfo subInfo : checklistInfos){
+                    tnrResponse = null;
                     for(TnrResponse tnrr : tnrResponses){
                         // TODO compare by id, requires model change
                         if(subInfo.getLabel().equals(tnrr.getChecklist())){
                             tnrResponse = tnrr;
-                            tnrResponse.setStatus("ok");
+                            tnrResponse.setStatus("ok"); // TODO will go into tnrClientStatus, see TODO above
+                            tnrResponse.setDuration(BigDecimal.valueOf(runner.getDuration()));
+                            tnrResponsesOrderd.add(tnrResponse);
                         }
                     }
+                    if(tnrResponse == null){
+                        // no match found! will become obsolete with tnrClientStatus
+                        tnrResponse = TnrMsgUtils.tnrResponseFor(info);
+                        // in case of no match, status is ok but result set is empty
+                        tnrResponse.setStatus("ok"); // TODO will go into tnrClientStatus, see TODO above
+                        tnrResponsesOrderd.add(tnrResponse);
+                    }
                 }
-                if(tnrResponse == null){
-                    tnrResponse = TnrMsgUtils.tnrResponseFor(info);
-                    // in case of no match, status is ok but result set is empty
-                    tnrResponse.setStatus("ok");
-                }
+
             }
-            tnrResponse.setDuration(BigDecimal.valueOf(runner.getDuration()));
-            tnrResponsesOrderd.add(tnrResponse);
         }
         tnrMsg.getQuery().get(0).getTnrResponse().clear();
         tnrMsg.getQuery().get(0).getTnrResponse().addAll(tnrResponsesOrderd);
