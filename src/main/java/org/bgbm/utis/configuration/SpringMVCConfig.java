@@ -18,10 +18,7 @@ import javax.servlet.ServletContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bgbm.biovel.drf.tnr.msg.Classification;
-import org.bgbm.biovel.drf.tnr.msg.TaxonName;
 import org.bgbm.biovel.drf.tnr.msg.TnrMsg;
-import org.bgbm.biovel.drf.tnr.msg.TnrMsg.Query.TnrRequest;
-import org.bgbm.biovel.drf.tnr.msg.TnrResponse;
 import org.bgbm.utis.jackson.ClassificationMixIn;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -161,7 +158,8 @@ public class SpringMVCConfig extends WebMvcConfigurerAdapter {
 
        final Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
 
-       marshaller.setClassesToBeBound(TnrMsg.class, TnrRequest.class, TnrResponse.class, TaxonName.class);
+
+       marshaller.setPackagesToScan(new String[]{TnrMsg.class.getPackage().getName()});
 
        return new ViewResolver() {
 

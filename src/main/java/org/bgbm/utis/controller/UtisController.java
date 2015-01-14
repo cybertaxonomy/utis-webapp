@@ -33,6 +33,8 @@ import org.bgbm.biovel.drf.checklist.SearchMode;
 import org.bgbm.biovel.drf.checklist.WoRMSClient;
 import org.bgbm.biovel.drf.rest.TaxoRESTClient;
 import org.bgbm.biovel.drf.rest.TaxoRESTClient.ServiceProviderInfo;
+import org.bgbm.biovel.drf.tnr.msg.Query;
+import org.bgbm.biovel.drf.tnr.msg.Query.TnrClientStatus;
 import org.bgbm.biovel.drf.tnr.msg.TnrMsg;
 import org.bgbm.biovel.drf.tnr.msg.TnrResponse;
 import org.bgbm.biovel.drf.utils.JSONUtils;
@@ -279,11 +281,13 @@ public class UtisController {
         logger.debug("end of waiting (all runners completed or timed out)");
 
         // collect, re-order the responses and set the status
-        List<TnrResponse> tnrResponses = tnrMsg.getQuery().get(0).getTnrResponse(); // TODO HACK: we only are treating one query
+        Query currentQuery = tnrMsg.getQuery().get(0);
+        List<TnrResponse> tnrResponses = currentQuery.getTnrResponse(); // TODO HACK: we only are treating one query
         List<TnrResponse> tnrResponsesOrderd = new ArrayList<TnrResponse>(tnrResponses.size());
 
         for(ChecklistClientRunner runner : runners){
             ServiceProviderInfo info = runner.getClient().getServiceProviderInfo();
+            TnrClientStatus tnrStatus = TnrMsgUtils.tnrClientStatusFor(info);
             TnrResponse tnrResponse = null;
 
             // --- handle all exception states and create one tnrResonse which will contain the status
@@ -295,23 +299,21 @@ public class UtisController {
              */
             if(runner.isInterrupted()){
                 logger.debug("client runner '" + runner.getClient() + "' was interrupted");
-                tnrResponse = TnrMsgUtils.tnrResponseFor(info);
-                tnrResponse.setStatus("interrupted");
+                tnrStatus.setStatusMessage("interrupted");
             }
             else
             if(runner.isAlive()){
                 logger.debug("client runner '" + runner.getClient() + "' has timed out");
-                tnrResponse = TnrMsgUtils.tnrResponseFor(info);
-                tnrResponse.setStatus("timeout");
+                tnrStatus.setStatusMessage("timeout");
             }
             else
             if(runner.isUnsupportedMode()){
                 logger.debug("client runner '" + runner.getClient() + "' : unsupported search mode");
-                tnrResponse = TnrMsgUtils.tnrResponseFor(info);
-                tnrResponse.setStatus("unsupported search mode");
+                tnrStatus.setStatusMessage("unsupported search mode");
             }
             else {
 
+                tnrStatus.setStatusMessage("ok");
                 // --- collect the ServiceProviderInfo objects by which the responses will be ordered
                 List<ServiceProviderInfo> checklistInfos;
                 if(info.getSubChecklists() != null && !info.getSubChecklists().isEmpty()){
@@ -330,8 +332,7 @@ public class UtisController {
                         // TODO compare by id, requires model change
                         if(subInfo.getLabel().equals(tnrr.getChecklist())){
                             tnrResponse = tnrr;
-                            tnrResponse.setStatus("ok"); // TODO will go into tnrClientStatus, see TODO above
-                            tnrResponse.setDuration(BigDecimal.valueOf(runner.getDuration()));
+                            tnrStatus.setDuration(BigDecimal.valueOf(runner.getDuration()));
                             tnrResponsesOrderd.add(tnrResponse);
                         }
                     }
@@ -339,15 +340,15 @@ public class UtisController {
                         // no match found! will become obsolete with tnrClientStatus
                         tnrResponse = TnrMsgUtils.tnrResponseFor(info);
                         // in case of no match, status is ok but result set is empty
-                        tnrResponse.setStatus("ok"); // TODO will go into tnrClientStatus, see TODO above
                         tnrResponsesOrderd.add(tnrResponse);
                     }
                 }
 
             }
+            currentQuery.getTnrClientStatus().add(tnrStatus);
         }
-        tnrMsg.getQuery().get(0).getTnrResponse().clear();
-        tnrMsg.getQuery().get(0).getTnrResponse().addAll(tnrResponsesOrderd);
+        currentQuery.getTnrResponse().clear();
+        currentQuery.getTnrResponse().addAll(tnrResponsesOrderd);
 
 
         return tnrMsg;
