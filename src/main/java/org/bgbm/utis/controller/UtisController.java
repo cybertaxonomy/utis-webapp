@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,14 +30,12 @@ import org.bgbm.biovel.drf.checklist.DRFChecklistException;
 import org.bgbm.biovel.drf.checklist.PESIClient;
 import org.bgbm.biovel.drf.checklist.SearchMode;
 import org.bgbm.biovel.drf.checklist.WoRMSClient;
+import org.bgbm.biovel.drf.rest.ServiceProviderInfo;
 import org.bgbm.biovel.drf.rest.TaxoRESTClient;
-import org.bgbm.biovel.drf.rest.TaxoRESTClient.ServiceProviderInfo;
 import org.bgbm.biovel.drf.tnr.msg.Query;
 import org.bgbm.biovel.drf.tnr.msg.Query.TnrClientStatus;
 import org.bgbm.biovel.drf.tnr.msg.TnrMsg;
 import org.bgbm.biovel.drf.tnr.msg.TnrResponse;
-import org.bgbm.biovel.drf.utils.JSONUtils;
-import org.bgbm.biovel.drf.utils.ServiceProviderInfoUtils;
 import org.bgbm.biovel.drf.utils.TnrMsgUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +43,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -55,7 +51,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.sun.xml.internal.ws.server.provider.ProviderInvokerTube;
 import com.wordnik.swagger.annotations.ApiParam;
 
 /**
@@ -70,10 +65,10 @@ public class UtisController {
 
     protected Logger logger = LoggerFactory.getLogger(UtisController.class);
 
-    private Map<String, ChecklistInfo> checklistInfoMap;
+    private Map<String, ServiceProviderInfo> ServiceProviderInfoMap;
     private Map<String, Class<? extends BaseChecklistClient>> clientClassMap;
 
-    private final List<ChecklistInfo> defaultProviders = new ArrayList<ChecklistInfo>();
+    private final List<ServiceProviderInfo> defaultProviders = new ArrayList<ServiceProviderInfo>();
 
     public UtisController() throws ClassNotFoundException {
         initProviderMap();
@@ -104,7 +99,7 @@ public class UtisController {
         Set<Class<BaseChecklistClient>> checklistClients;
         checklistClients = subclassesFor(BaseChecklistClient.class);
 
-        checklistInfoMap = new HashMap<String, ChecklistInfo>();
+        ServiceProviderInfoMap = new HashMap<String, ServiceProviderInfo>();
         clientClassMap = new HashMap<String, Class<? extends BaseChecklistClient>>();
 
         for(Class<BaseChecklistClient> clientClass: checklistClients){
@@ -115,7 +110,8 @@ public class UtisController {
                 ServiceProviderInfo info = client.buildServiceProviderInfo();
 
                 clientClassMap.put(info.getId(), clientClass);
-                checklistInfoMap.put(info.getId(), new ChecklistInfo(info, client.getSearchModes()));
+                info.setSearchModes(client.getSearchModes()); // TODO setSearchModes should be done in client impl
+                ServiceProviderInfoMap.put(info.getId(), info);
 
             } catch (InstantiationException e) {
                 // TODO Auto-generated catch block
@@ -126,9 +122,9 @@ public class UtisController {
             }
         }
 
-        defaultProviders.add(checklistInfoMap.get(PESIClient.ID));
-        defaultProviders.add(checklistInfoMap.get(BgbmEditClient.ID));
-        defaultProviders.add(checklistInfoMap.get(WoRMSClient.ID));
+        defaultProviders.add(ServiceProviderInfoMap.get(PESIClient.ID));
+        defaultProviders.add(ServiceProviderInfoMap.get(BgbmEditClient.ID));
+        defaultProviders.add(ServiceProviderInfoMap.get(WoRMSClient.ID));
     }
 
     private BaseChecklistClient newClientFor(String id) {
@@ -200,10 +196,10 @@ public class UtisController {
                 @ApiParam(value = "Specifies the searchMode. "
                         + "Possible search modes are: scientificNameExact, scientificNameLike, vernacularName. "
                         + "If the a provider does not support the chosen searchMode it will be skiped and "
-                        + "the response status will be set to 'unsupported search mode'")
+                        + "the status message in the tnrClientStatus will be set to 'unsupported search mode' in this case.")
                 @RequestParam(value = "searchMode", required = false, defaultValue="scientificNameExact")
                 SearchMode searchMode,
-                @ApiParam(value = "The most millis milliseconds to wait for resones from any of the providers. "
+                @ApiParam(value = "The most milliseconds to wait for responses from any of the providers. "
                         + "If the timeout is exceeded the service will jut return the resonses that have been "
                         + "received so far. The default timeout is 0 ms (wait for ever)")
                 @RequestParam(value = "timeout", required = false, defaultValue="0")
@@ -215,10 +211,10 @@ public class UtisController {
 
         List<String> nameCompleteList;
 
-        List<ChecklistInfo> providerList = defaultProviders;
+        List<ServiceProviderInfo> providerList = defaultProviders;
         if (providers != null) {
             String[] providerIdTokens = providers.split(",");
-            providerList = new ArrayList<ChecklistInfo>();
+            providerList = new ArrayList<ServiceProviderInfo>();
             for (String id : providerIdTokens) {
 
                 List<String> subproviderIds = parsSubproviderIds(id);
@@ -226,8 +222,8 @@ public class UtisController {
                     id = id.substring(0, id.indexOf("["));
                 }
 
-                if(checklistInfoMap.containsKey(id)){
-                     ChecklistInfo provider = checklistInfoMap.get(id);
+                if(ServiceProviderInfoMap.containsKey(id)){
+                     ServiceProviderInfo provider = ServiceProviderInfoMap.get(id);
                     if(!subproviderIds.isEmpty()){
                         Collection<ServiceProviderInfo> removeCandidates = new ArrayList<ServiceProviderInfo>();
                         for(ServiceProviderInfo subProvider : provider.getSubChecklists()){
@@ -258,7 +254,7 @@ public class UtisController {
 
         // query all providers
         List<ChecklistClientRunner> runners = new ArrayList<ChecklistClientRunner>(providerList.size());
-        for (ChecklistInfo info : providerList) {
+        for (ServiceProviderInfo info : providerList) {
             BaseChecklistClient client = newClientFor(info.getId());
             if(client != null){
                 logger.debug("sending query to " + info.getId());
@@ -309,18 +305,18 @@ public class UtisController {
 
                 tnrStatus.setStatusMessage("ok");
                 // --- collect the ServiceProviderInfo objects by which the responses will be ordered
-                List<ServiceProviderInfo> checklistInfos;
+                List<ServiceProviderInfo> ServiceProviderInfos;
                 if(info.getSubChecklists() != null && !info.getSubChecklists().isEmpty()){
                     // for subchecklists we will have to look for responses of each of the subchecklists
-                    checklistInfos = info.getSubChecklists();
+                    ServiceProviderInfos = info.getSubChecklists();
                 } else {
                     // otherwise we only look for the responses of one checklist
-                    checklistInfos = new ArrayList<ServiceProviderInfo>(1);
-                    checklistInfos.add(info);
+                    ServiceProviderInfos = new ArrayList<ServiceProviderInfo>(1);
+                    ServiceProviderInfos.add(info);
                 }
 
                 // --- order the tnrResponses
-                for(ServiceProviderInfo subInfo : checklistInfos){
+                for(ServiceProviderInfo subInfo : ServiceProviderInfos){
                     tnrResponse = null;
                     for(TnrResponse tnrr : tnrResponses){
                         // TODO compare by id, requires model change
@@ -365,7 +361,7 @@ public class UtisController {
     }
 
     @RequestMapping(method = { RequestMethod.GET }, value = "/capabilities")
-    public @ResponseBody List<ChecklistInfo> capabilities(HttpServletRequest request, HttpServletResponse response) {
+    public @ResponseBody List<ServiceProviderInfo> capabilities(HttpServletRequest request, HttpServletResponse response) {
         return defaultProviders;
     }
 
