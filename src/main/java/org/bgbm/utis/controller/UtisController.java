@@ -184,7 +184,7 @@ public class UtisController {
                     +"characters. The default : \"pesi,bgbm-cdm-server[col]\" will be used "
                     + "if this parameter is not set. A list of all available provider "
                     +"ids can be obtained from the '/capabilities' service "
-                    +"end point."
+                    +"end point. "
                     + "Providers can be nested, that is a parent provider can have "
                     + "sub providers. If the id of the parent provider is supplied all subproviders will "
                     + "be queried. The query can also be restriced to one or more subproviders by "
@@ -194,8 +194,8 @@ public class UtisController {
                 @RequestParam(value = "providers", required = false)
                 String providers,
                 @ApiParam(value = "Specifies the searchMode. "
-                        + "Possible search modes are: scientificNameExact, scientificNameLike, vernacularName. "
-                        + "If the a provider does not support the chosen searchMode it will be skiped and "
+                        + "Possible search modes are: scientificNameExact, scientificNameLike (begins with), vernacularNameExact, vernacularNameLike (contains). "
+                        + "If the a provider does not support the chosen searchMode it will be skipped and "
                         + "the status message in the tnrClientStatus will be set to 'unsupported search mode' in this case.")
                 @RequestParam(value = "searchMode", required = false, defaultValue="scientificNameExact")
                 SearchMode searchMode,
