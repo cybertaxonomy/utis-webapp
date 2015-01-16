@@ -199,7 +199,7 @@ public class UtisController {
                         + "the status message in the tnrClientStatus will be set to 'unsupported search mode' in this case.")
                 @RequestParam(value = "searchMode", required = false, defaultValue="scientificNameExact")
                 SearchMode searchMode,
-                @ApiParam(value = "The most milliseconds to wait for responses from any of the providers. "
+                @ApiParam(value = "The maximum of milliseconds to wait for responses from any of the providers. "
                         + "If the timeout is exceeded the service will jut return the resonses that have been "
                         + "received so far. The default timeout is 0 ms (wait for ever)")
                 @RequestParam(value = "timeout", required = false, defaultValue="0")
