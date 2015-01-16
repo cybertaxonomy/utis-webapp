@@ -4,7 +4,7 @@ import org.bgbm.biovel.drf.checklist.BaseChecklistClient;
 import org.bgbm.biovel.drf.checklist.DRFChecklistException;
 import org.bgbm.biovel.drf.checklist.SearchMode;
 import org.bgbm.biovel.drf.tnr.msg.TnrMsg;
-import org.bgbm.biovel.drf.tnr.msg.TnrResponse;
+import org.bgbm.biovel.drf.tnr.msg.Response;
 import org.bgbm.biovel.drf.utils.TnrMsgUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

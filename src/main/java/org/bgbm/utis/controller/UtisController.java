@@ -33,9 +33,9 @@ import org.bgbm.biovel.drf.checklist.WoRMSClient;
 import org.bgbm.biovel.drf.rest.ServiceProviderInfo;
 import org.bgbm.biovel.drf.rest.TaxoRESTClient;
 import org.bgbm.biovel.drf.tnr.msg.Query;
-import org.bgbm.biovel.drf.tnr.msg.Query.TnrClientStatus;
+import org.bgbm.biovel.drf.tnr.msg.Query.ClientStatus;
 import org.bgbm.biovel.drf.tnr.msg.TnrMsg;
-import org.bgbm.biovel.drf.tnr.msg.TnrResponse;
+import org.bgbm.biovel.drf.tnr.msg.Response;
 import org.bgbm.biovel.drf.utils.TnrMsgUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -241,16 +241,7 @@ public class UtisController {
             }
         }
 
-        nameCompleteList = new ArrayList<String>();
-        nameCompleteList.add(query);
-
-        List<TnrMsg> accumulatedTnrMsgs = new ArrayList<TnrMsg>(providerList.size());
-
-        List<TnrMsg> tnrMsgs = TnrMsgUtils.convertStringListToTnrMsgList(nameCompleteList);
-        tnrMsgs.get(0).getQuery().get(0).getTnrRequest().setSearchMode(searchMode.toString());
-
-        TnrMsg tnrMsg = TnrMsgUtils.mergeTnrMsgs(tnrMsgs);
-
+        TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(query, searchMode);
 
         // query all providers
         List<ChecklistClientRunner> runners = new ArrayList<ChecklistClientRunner>(providerList.size());
@@ -278,13 +269,13 @@ public class UtisController {
 
         // collect, re-order the responses and set the status
         Query currentQuery = tnrMsg.getQuery().get(0); // TODO HACK: we only are treating one query
-        List<TnrResponse> tnrResponses = currentQuery.getTnrResponse();
-        List<TnrResponse> tnrResponsesOrderd = new ArrayList<TnrResponse>(tnrResponses.size());
+        List<Response> tnrResponses = currentQuery.getResponse();
+        List<Response> tnrResponsesOrderd = new ArrayList<Response>(tnrResponses.size());
 
         for(ChecklistClientRunner runner : runners){
             ServiceProviderInfo info = runner.getClient().getServiceProviderInfo();
-            TnrClientStatus tnrStatus = TnrMsgUtils.tnrClientStatusFor(info);
-            TnrResponse tnrResponse = null;
+            ClientStatus tnrStatus = TnrMsgUtils.tnrClientStatusFor(info);
+            Response tnrResponse = null;
 
             // --- handle all exception states and create one tnrResonse which will contain the status
             if(runner.isInterrupted()){
@@ -318,7 +309,7 @@ public class UtisController {
                 // --- order the tnrResponses
                 for(ServiceProviderInfo subInfo : ServiceProviderInfos){
                     tnrResponse = null;
-                    for(TnrResponse tnrr : tnrResponses){
+                    for(Response tnrr : tnrResponses){
                         // TODO compare by id, requires model change
                         if(subInfo.getLabel().equals(tnrr.getChecklist())){
                             tnrResponse = tnrr;
@@ -335,10 +326,10 @@ public class UtisController {
                 }
 
             }
-            currentQuery.getTnrClientStatus().add(tnrStatus);
+            currentQuery.getClientStatus().add(tnrStatus);
         }
-        currentQuery.getTnrResponse().clear();
-        currentQuery.getTnrResponse().addAll(tnrResponsesOrderd);
+        currentQuery.getResponse().clear();
+        currentQuery.getResponse().addAll(tnrResponsesOrderd);
 
 
         return tnrMsg;
