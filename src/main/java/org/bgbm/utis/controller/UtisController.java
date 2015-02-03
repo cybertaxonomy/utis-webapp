@@ -151,7 +151,7 @@ public class UtisController {
 
     /**
      *
-     * @param query The complete canonical scientific name to search for. For
+     * @param queryString The complete canonical scientific name to search for. For
      *          example: <code>Bellis perennis</code>, <code>Prionus</code> or
      *          <code>Bolinus brandaris</code>.
      *          This is a exact search so wildcard characters are not supported.
@@ -179,7 +179,7 @@ public class UtisController {
                     +"This is an exact search so wildcard characters are not supported."
                     ,required=true)
                 @RequestParam(value = "query", required = false)
-                String query,
+                String queryString,
                 @ApiParam(value = "A list of provider id strings concatenated by comma "
                     +"characters. The default : \"pesi,bgbm-cdm-server[col]\" will be used "
                     + "if this parameter is not set. A list of all available provider "
@@ -199,6 +199,10 @@ public class UtisController {
                         + "the status message in the tnrClientStatus will be set to 'unsupported search mode' in this case.")
                 @RequestParam(value = "searchMode", required = false, defaultValue="scientificNameExact")
                 SearchMode searchMode,
+                @ApiParam(value = "Indicates whether the synonymy of the accepted taxon should be included into the response. "
+                        + "Turning this option on may cause an increased response time.")
+                @RequestParam(value = "addSynonymy", required = false, defaultValue="false")
+                Boolean addSynonymy,
                 @ApiParam(value = "The maximum of milliseconds to wait for responses from any of the providers. "
                         + "If the timeout is exceeded the service will jut return the resonses that have been "
                         + "received so far. The default timeout is 0 ms (wait for ever)")
@@ -209,7 +213,6 @@ public class UtisController {
             ) throws DRFChecklistException, JsonGenerationException, JsonMappingException,
             IOException {
 
-        List<String> nameCompleteList;
 
         List<ServiceProviderInfo> providerList = defaultProviders;
         if (providers != null) {
@@ -241,7 +244,7 @@ public class UtisController {
             }
         }
 
-        TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(query, searchMode);
+        TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(queryString, searchMode, addSynonymy);
 
         // query all providers
         List<ChecklistClientRunner> runners = new ArrayList<ChecklistClientRunner>(providerList.size());
