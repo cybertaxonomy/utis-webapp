@@ -3,6 +3,7 @@ package org.bgbm.utis.controller;
 import org.bgbm.biovel.drf.checklist.BaseChecklistClient;
 import org.bgbm.biovel.drf.checklist.DRFChecklistException;
 import org.bgbm.biovel.drf.checklist.SearchMode;
+import org.bgbm.biovel.drf.checklist.UnsupportedIdentifierException;
 import org.bgbm.biovel.drf.tnr.msg.TnrMsg;
 import org.bgbm.biovel.drf.tnr.msg.Response;
 import org.bgbm.biovel.drf.utils.TnrMsgUtils;
@@ -21,17 +22,17 @@ public class ChecklistClientRunner extends Thread{
 
     private boolean unsupportedMode = false;
 
-    private SearchMode searchMode;
+    private boolean unsupportedIdentifier = false;
 
     public BaseChecklistClient getClient() {
         return client;
     }
 
-    public ChecklistClientRunner(BaseChecklistClient client, TnrMsg tnrMsg, SearchMode searchMode){
+    public ChecklistClientRunner(BaseChecklistClient client, TnrMsg tnrMsg){
         this.client = client;
         this.tnrMsg = tnrMsg;
-        this.searchMode = searchMode;
-        unsupportedMode = !client.getSearchModes().contains(searchMode);
+        TnrMsgUtils.assertSearchModeSet(tnrMsg, true);
+        unsupportedMode = !client.getSearchModes().contains(TnrMsgUtils.getSearchMode(tnrMsg));
     }
 
     @Override
@@ -48,12 +49,18 @@ public class ChecklistClientRunner extends Thread{
 
         long start = System.currentTimeMillis();
         try {
-            client.queryChecklist(tnrMsg, searchMode);
+            client.queryChecklist(tnrMsg);
             if(logger.isDebugEnabled()){
                 logger.debug("query to " + client.getServiceProviderInfo().getId() + " completed");
             }
         } catch (DRFChecklistException e) {
+            if(e instanceof UnsupportedIdentifierException){
+                setUnsupportedIdentifier(true);
+                // skip
+                return;
+            }
             logger.error("Error during request to " + client.getServiceProviderInfo().getId(), e);
+
         }
         duration = System.currentTimeMillis() - start;
     }
@@ -77,6 +84,20 @@ public class ChecklistClientRunner extends Thread{
      */
     public void setUnsupportedMode(boolean unsupportedMode) {
         this.unsupportedMode = unsupportedMode;
+    }
+
+    /**
+     * @return the unsupportedIdentifier
+     */
+    public boolean isUnsupportedIdentifier() {
+        return unsupportedIdentifier;
+    }
+
+    /**
+     * @param unsupportedIdentifier the unsupportedIdentifier to set
+     */
+    public void setUnsupportedIdentifier(boolean unsupportedIdentifier) {
+        this.unsupportedIdentifier = unsupportedIdentifier;
     }
 
 }

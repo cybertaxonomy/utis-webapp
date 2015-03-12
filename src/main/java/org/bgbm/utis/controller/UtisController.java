@@ -259,7 +259,8 @@ public class UtisController {
                 @RequestParam(value = "providers", required = false)
                 String providers,
                 @ApiParam(value = "Specifies the searchMode. "
-                        + "Possible search modes are: scientificNameExact, scientificNameLike (begins with), vernacularNameExact, vernacularNameLike (contains). "
+                        + "Possible search modes are: scientificNameExact, scientificNameLike (begins with), vernacularNameExact, "
+                        + "vernacularNameLike (contains), findByIdentifier. "
                         + "If the a provider does not support the chosen searchMode it will be skipped and "
                         + "the status message in the tnrClientStatus will be set to 'unsupported search mode' in this case.")
                 @RequestParam(value = "searchMode", required = false, defaultValue="scientificNameExact")
@@ -289,7 +290,7 @@ public class UtisController {
             BaseChecklistClient client = newClientFor(info.getId());
             if(client != null){
                 logger.debug("sending query to " + info.getId());
-                ChecklistClientRunner runner = new ChecklistClientRunner(client, tnrMsg, searchMode);
+                ChecklistClientRunner runner = new ChecklistClientRunner(client, tnrMsg);
                 runner.start();
                 runners.add(runner);
             }
@@ -332,6 +333,11 @@ public class UtisController {
                 logger.debug("client runner '" + runner.getClient() + "' : unsupported search mode");
                 tnrStatus.setStatusMessage("unsupported search mode");
             }
+            else
+            if(runner.isUnsupportedIdentifier()){
+                logger.debug("client runner '" + runner.getClient() + "' : identifier type not supported");
+                tnrStatus.setStatusMessage("identifier type not supported");
+            }
             else {
 
                 tnrStatus.setStatusMessage("ok");
@@ -357,12 +363,6 @@ public class UtisController {
                             tnrResponsesOrderd.add(tnrResponse);
                         }
                     }
-                    if(tnrResponse == null){
-                        // no match found! will become obsolete with tnrClientStatus
-                        tnrResponse = TnrMsgUtils.tnrResponseFor(info);
-                        // in case of no match, status is ok but result set is empty
-                        tnrResponsesOrderd.add(tnrResponse);
-                    }
                 }
 
             }
@@ -373,48 +373,6 @@ public class UtisController {
 
 
         return tnrMsg;
-    }
-
-
-    @RequestMapping(method = { RequestMethod.GET }, value = "/resolve")
-    public @ResponseBody
-    TnrMsg resolve(
-            @ApiParam(value = "The identifier to be resolved. This can be an LSID, UUID, integer or any other value "
-                    + "which is used by a source checklist. This service may return multiple records for a given "
-                    + "identifier even in case of an LSID since there could be two checklist providers which holding information of the "
-                    + "same source checklist. You can use the 'providers' parameter to restrict the identifier resolution to a specific "
-                    + "provider.",
-                    required=true)
-            @RequestParam(value = "identifier", required = true)
-            String identifier,
-            @ApiParam(value = "A list of provider id strings concatenated by comma "
-                    +"characters. The default : \"pesi,bgbm-cdm-server[col]\" will be used "
-                    + "if this parameter is not set. A list of all available provider "
-                    +"ids can be obtained from the '/capabilities' service "
-                    +"end point. "
-                    + "Providers can be nested, that is a parent provider can have "
-                    + "sub providers. If the id of the parent provider is supplied all subproviders will "
-                    + "be queried. The query can also be restriced to one or more subproviders by "
-                    + "using the following syntax: parent-id[sub-id-1,sub-id2,...]",
-                    defaultValue="pesi,bgbm-cdm-server[col]",
-                    required=false)
-            @RequestParam(value = "providers", required = false)
-            String providers,
-            @ApiParam(value = "The maximum of milliseconds to wait for responses from any of the providers. "
-                    + "If the timeout is exceeded the service will jut return the resonses that have been "
-                    + "received so far. The default timeout is 0 ms (wait for ever)")
-            @RequestParam(value = "timeout", required = false, defaultValue="0")
-            Long timeout,
-            HttpServletRequest request,
-            HttpServletResponse response
-            ) throws IOException{
-
-        List<ServiceProviderInfo> providerList = createProviderList(providers, response);
-
-        //TODO implement
-
-        return null;
-
     }
 
 
