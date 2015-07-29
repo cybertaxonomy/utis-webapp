@@ -144,6 +144,9 @@
         <artifactId>jetty-maven-plugin</artifactId>
         <configuration>
           <war>${basedir}/target/eubon-utis.war</war>
+          <webApp>
+            <contextPath>/eubon-utis</contextPath>
+          </webApp>
         </configuration>
       </plugin>
       <plugin>
