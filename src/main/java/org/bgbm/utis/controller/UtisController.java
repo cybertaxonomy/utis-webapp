@@ -27,10 +27,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.cybertaxonomy.utis.checklist.BaseChecklistClient;
 import org.cybertaxonomy.utis.checklist.BgbmEditClient;
 import org.cybertaxonomy.utis.checklist.DRFChecklistException;
+import org.cybertaxonomy.utis.checklist.EEA_BDC_Client;
 import org.cybertaxonomy.utis.checklist.PESIClient;
 import org.cybertaxonomy.utis.checklist.SearchMode;
 import org.cybertaxonomy.utis.checklist.WoRMSClient;
 import org.cybertaxonomy.utis.client.AbstractClient;
+import org.cybertaxonomy.utis.client.ClientFactory;
 import org.cybertaxonomy.utis.client.ServiceProviderInfo;
 import org.cybertaxonomy.utis.tnr.msg.Query;
 import org.cybertaxonomy.utis.tnr.msg.Query.ClientStatus;
@@ -67,6 +69,8 @@ public class UtisController {
 
     private Map<String, ServiceProviderInfo> serviceProviderInfoMap;
     private Map<String, Class<? extends BaseChecklistClient>> clientClassMap;
+
+    private final ClientFactory clientFactory = new ClientFactory();
 
     private final List<ServiceProviderInfo> defaultProviders = new ArrayList<ServiceProviderInfo>();
 
@@ -123,6 +127,7 @@ public class UtisController {
         }
 
         defaultProviders.add(serviceProviderInfoMap.get(PESIClient.ID));
+        defaultProviders.add(serviceProviderInfoMap.get(EEA_BDC_Client.ID));
         defaultProviders.add(serviceProviderInfoMap.get(BgbmEditClient.ID));
         defaultProviders.add(serviceProviderInfoMap.get(WoRMSClient.ID));
     }
@@ -186,27 +191,7 @@ public class UtisController {
     }
 
 
-    private BaseChecklistClient newClientFor(String id) {
 
-        BaseChecklistClient instance = null;
-
-        if(!clientClassMap.containsKey(id)){
-            logger.error("Unsupported Client ID: "+ id);
-
-        } else {
-            try {
-                instance = clientClassMap.get(id).newInstance();
-            } catch (InstantiationException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-
-        return instance;
-    }
 
     @RequestMapping(method = { RequestMethod.GET }, value = "/capabilities")
     public @ResponseBody List<ServiceProviderInfo> capabilities(HttpServletRequest request, HttpServletResponse response) {
@@ -287,7 +272,7 @@ public class UtisController {
         // query all providers
         List<ChecklistClientRunner> runners = new ArrayList<ChecklistClientRunner>(providerList.size());
         for (ServiceProviderInfo info : providerList) {
-            BaseChecklistClient client = newClientFor(info.getId());
+            BaseChecklistClient client = clientFactory.newClient(clientClassMap.get(info.getId()));
             if(client != null){
                 logger.debug("sending query to " + info.getId());
                 ChecklistClientRunner runner = new ChecklistClientRunner(client, tnrMsg);
