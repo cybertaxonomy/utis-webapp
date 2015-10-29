@@ -28,6 +28,7 @@ import org.cybertaxonomy.utis.checklist.BaseChecklistClient;
 import org.cybertaxonomy.utis.checklist.BgbmEditClient;
 import org.cybertaxonomy.utis.checklist.DRFChecklistException;
 import org.cybertaxonomy.utis.checklist.EEA_BDC_Client;
+import org.cybertaxonomy.utis.checklist.GBIFBetaBackboneClient;
 import org.cybertaxonomy.utis.checklist.PESIClient;
 import org.cybertaxonomy.utis.checklist.SearchMode;
 import org.cybertaxonomy.utis.checklist.WoRMSClient;
@@ -108,6 +109,10 @@ public class UtisController {
 
         for(Class<BaseChecklistClient> clientClass: checklistClients){
 
+            if(GBIFBetaBackboneClient.class.isAssignableFrom(clientClass)) {
+                logger.debug("Skipping GBIFBetaBackboneClient since this is broken");
+                continue;
+            }
             BaseChecklistClient client;
             try {
                 client = clientClass.newInstance();
