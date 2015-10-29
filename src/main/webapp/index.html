@@ -37,25 +37,29 @@ search on multiple European checklists and returns a unified result set of the i
 of the various checklists.
 </p>
 <p>
-The current implementation of the UTIS is still a prototype, which means that the API and data model may be
-changed until final release. It connects the web services of the
-<a href="http://www.eu-nomen.eu">Pan-European Species directories Infrastructure, PESI</a>  CoL,
-the <a href="http://www.catalogueoflife.org/">Catalogue of Life</a> and of the
-<a href="http://www.marinespecies.org/">World Register of Marine Species (WoRMS)</a>.
-In future it will connect more
-data providers like <a href="http://www.eea.europa.eu/themes/biodiversity/eunis/eunis-db">EUNIS</a>
-and <a href="http://www.eea.europa.eu/data-and-maps/data/natura-5">Natura2000</a> in order to be compliant
-with the <a href="http://inspire.ec.europa.eu/documents/Data_Specifications/INSPIRE_DataSpecification_SD_v3.0rc3.pdf">INSPIRE directive</a>.
-Currently it is possible to <strong>search for taxa and synonyms by a scientific name or
-vernacular name string</strong>. In case of matching synonyms the according accepted taxon is resolved.
-The search results always include information on the classification and optionally on related taxa as far as
-this data is delivered by the connected checklist providers.
+UTIS connects the web services of the <a href="http://www.eu-nomen.eu">Pan-European Species directories 
+Infrastructure (EU-Nomen)</a>, <a href="http://www.eea.europa.eu/themes/biodiversity/eunis/eunis-db">EUNIS</a> which 
+fully covers <a href="http://www.eea.europa.eu/data-and-maps/data/natura-5">Natura 2000</a>. Therefore UTIS can be used in full compliance 
+to Appendix 3 of the <a href="http://inspire.ec.europa.eu/documents/Data_Specifications/INSPIRE_DataSpecification_SD_v3.0rc3.pdf">the 
+INSPIRE directive</a>. Furthermore it connects to the <a href="http://www.catalogueoflife.org/">Catalogue of Life (CoL)</a>,
+ the <a href="http://www.marinespecies.org/">World Register of Marine Species (WoRMS)</a>. 
+</p>
+<p>
+Currently it is possible to search for taxa and synonyms by scientific name or vernacular name strings. 
+In case of the search string matches a synonym the according accepted taxon is resolved. UTIS provides furthermore a special 
+search mode for resolving taxon identifiers. </br>
+The responses of the search web service always include information 
+on the classification and optionally on related taxa as far as this data is 
+delivered by the connected checklist providers. 
 </p>
 <p>
   <a href="doc.html">Documentation of the RESTful UTIS service api.</a>
 </p>
-
-<p><div>The service is being developed by the <a href="http://www.bgbm.org/de/wissenschaft-biodiversitaetsinformatik">Department of Research and Biodiversity Informatics</a> of the Botanic Garden and Botanical Museum Berlin-Dahlem.</div></p>
+<p>
+This first official release (v1.0) of UTIS is stabilized regarding the API and data model. Further changes are not yet planned. 
+</p>
+<p><div>The service is being developed by the <a href="http://www.bgbm.org/de/wissenschaft-biodiversitaetsinformatik">Department
+ of Research and Biodiversity Informatics</a> of the Botanic Garden and Botanical Museum Berlin-Dahlem.</div></p>
 </div>
 <div id="footer">
 <a href="http://eubon.eu/" title=""><img src="images/eubon-logo.jpeg" alt="EU BON Logo"></a>

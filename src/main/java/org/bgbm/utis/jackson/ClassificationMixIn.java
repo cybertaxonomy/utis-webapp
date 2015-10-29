@@ -3,7 +3,7 @@
  */
 package org.bgbm.utis.jackson;
 
-import org.bgbm.biovel.drf.tnr.msg.Classification;
+import org.cybertaxonomy.utis.tnr.msg.Classification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

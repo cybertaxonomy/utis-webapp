@@ -24,19 +24,19 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.bgbm.biovel.drf.checklist.BaseChecklistClient;
-import org.bgbm.biovel.drf.checklist.BgbmEditClient;
-import org.bgbm.biovel.drf.checklist.DRFChecklistException;
-import org.bgbm.biovel.drf.checklist.PESIClient;
-import org.bgbm.biovel.drf.checklist.SearchMode;
-import org.bgbm.biovel.drf.checklist.WoRMSClient;
-import org.bgbm.biovel.drf.rest.ServiceProviderInfo;
-import org.bgbm.biovel.drf.rest.TaxoRESTClient;
-import org.bgbm.biovel.drf.tnr.msg.Query;
-import org.bgbm.biovel.drf.tnr.msg.Query.ClientStatus;
-import org.bgbm.biovel.drf.tnr.msg.TnrMsg;
-import org.bgbm.biovel.drf.tnr.msg.Response;
-import org.bgbm.biovel.drf.utils.TnrMsgUtils;
+import org.cybertaxonomy.utis.checklist.BaseChecklistClient;
+import org.cybertaxonomy.utis.checklist.BgbmEditClient;
+import org.cybertaxonomy.utis.checklist.DRFChecklistException;
+import org.cybertaxonomy.utis.checklist.PESIClient;
+import org.cybertaxonomy.utis.checklist.SearchMode;
+import org.cybertaxonomy.utis.checklist.WoRMSClient;
+import org.cybertaxonomy.utis.client.AbstractClient;
+import org.cybertaxonomy.utis.client.ServiceProviderInfo;
+import org.cybertaxonomy.utis.tnr.msg.Query;
+import org.cybertaxonomy.utis.tnr.msg.Query.ClientStatus;
+import org.cybertaxonomy.utis.tnr.msg.Response;
+import org.cybertaxonomy.utis.tnr.msg.TnrMsg;
+import org.cybertaxonomy.utis.utils.TnrMsgUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -75,13 +75,13 @@ public class UtisController {
     }
 
 
-    public static <T extends TaxoRESTClient> Set<Class<T>> subclassesFor(Class<T> clazz) throws ClassNotFoundException{
+    public static <T extends AbstractClient> Set<Class<T>> subclassesFor(Class<T> clazz) throws ClassNotFoundException{
 
         Set<Class<T>> subClasses = new HashSet<Class<T>>();
         ClassPathScanningCandidateComponentProvider provider = new ClassPathScanningCandidateComponentProvider(true);
         provider.addIncludeFilter(new AssignableTypeFilter(clazz));
 
-        // scan only in org.bgbm.biovel.drf
+        // scan only in org.cybertaxonomy.utis
         Set<BeanDefinition> components = provider.findCandidateComponents("org/bgbm/biovel/drf");
         for (BeanDefinition component : components)
         {
