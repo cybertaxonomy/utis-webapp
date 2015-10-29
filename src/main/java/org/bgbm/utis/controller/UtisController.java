@@ -65,7 +65,7 @@ public class UtisController {
 
     protected Logger logger = LoggerFactory.getLogger(UtisController.class);
 
-    private Map<String, ServiceProviderInfo> ServiceProviderInfoMap;
+    private Map<String, ServiceProviderInfo> serviceProviderInfoMap;
     private Map<String, Class<? extends BaseChecklistClient>> clientClassMap;
 
     private final List<ServiceProviderInfo> defaultProviders = new ArrayList<ServiceProviderInfo>();
@@ -82,7 +82,7 @@ public class UtisController {
         provider.addIncludeFilter(new AssignableTypeFilter(clazz));
 
         // scan only in org.cybertaxonomy.utis
-        Set<BeanDefinition> components = provider.findCandidateComponents("org/bgbm/biovel/drf");
+        Set<BeanDefinition> components = provider.findCandidateComponents("org/cybertaxonomy/utis/");
         for (BeanDefinition component : components)
         {
             subClasses.add((Class<T>) Class.forName(component.getBeanClassName()));
@@ -99,7 +99,7 @@ public class UtisController {
         Set<Class<BaseChecklistClient>> checklistClients;
         checklistClients = subclassesFor(BaseChecklistClient.class);
 
-        ServiceProviderInfoMap = new HashMap<String, ServiceProviderInfo>();
+        serviceProviderInfoMap = new HashMap<String, ServiceProviderInfo>();
         clientClassMap = new HashMap<String, Class<? extends BaseChecklistClient>>();
 
         for(Class<BaseChecklistClient> clientClass: checklistClients){
@@ -111,7 +111,7 @@ public class UtisController {
 
                 clientClassMap.put(info.getId(), clientClass);
                 info.setSearchModes(client.getSearchModes()); // TODO setSearchModes should be done in client impl
-                ServiceProviderInfoMap.put(info.getId(), info);
+                serviceProviderInfoMap.put(info.getId(), info);
 
             } catch (InstantiationException e) {
                 // TODO Auto-generated catch block
@@ -122,9 +122,9 @@ public class UtisController {
             }
         }
 
-        defaultProviders.add(ServiceProviderInfoMap.get(PESIClient.ID));
-        defaultProviders.add(ServiceProviderInfoMap.get(BgbmEditClient.ID));
-        defaultProviders.add(ServiceProviderInfoMap.get(WoRMSClient.ID));
+        defaultProviders.add(serviceProviderInfoMap.get(PESIClient.ID));
+        defaultProviders.add(serviceProviderInfoMap.get(BgbmEditClient.ID));
+        defaultProviders.add(serviceProviderInfoMap.get(WoRMSClient.ID));
     }
 
     /**
@@ -146,8 +146,8 @@ public class UtisController {
                     id = id.substring(0, id.indexOf("["));
                 }
 
-                if(ServiceProviderInfoMap.containsKey(id)){
-                     ServiceProviderInfo provider = ServiceProviderInfoMap.get(id);
+                if(serviceProviderInfoMap.containsKey(id)){
+                     ServiceProviderInfo provider = serviceProviderInfoMap.get(id);
                     if(!subproviderIds.isEmpty()){
                         Collection<ServiceProviderInfo> removeCandidates = new ArrayList<ServiceProviderInfo>();
                         for(ServiceProviderInfo subProvider : provider.getSubChecklists()){
