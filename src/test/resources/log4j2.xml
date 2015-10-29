@@ -22,7 +22,7 @@
     <Logger name="org.apache.log4j.xml" level="info"/>
 <!--     <Logger name="com.mangofactory.swagger" level="debug"/> -->
     <Logger name="org.bgbm.utis" level="debug"/>
-    <Logger name="org.bgbm.biovel.drf" level="debug"/>
+    <Logger name="org.cybertaxonomy.utis" level="debug"/>
     <Logger name=org.apache.http.impl.conn" level="warn" />
     <Logger name=org.apache.http.impl.conn.Wire" level="warn" />
 <!--     <Logger name="org.springframework.web.servlet.view" level="debug"/> -->

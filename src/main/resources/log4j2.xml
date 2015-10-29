@@ -20,7 +20,9 @@
   </Appenders>
   <Loggers>
     <Logger name="org.apache.log4j.xml" level="info"/>
-    <Logger name="com.mangofactory.swagger" level="debug"/>
+    <Logger name="com.mangofactory.swagger" level="info"/>
+    <Logger name="org.bgbm.utis" level="info"/>
+    <Logger name="org.cybertaxonomy.utis" level="info"/>
 <!--     <Logger name="org.springframework.web.servlet.view" level="debug"/> -->
     <Root level="info">
       <AppenderRef ref="STDOUT"/>
