@@ -87,7 +87,7 @@ public class UtisController {
         provider.addIncludeFilter(new AssignableTypeFilter(clazz));
 
         // scan only in org.cybertaxonomy.utis
-        Set<BeanDefinition> components = provider.findCandidateComponents("org/cybertaxonomy/utis/");
+        Set<BeanDefinition> components = provider.findCandidateComponents("org/cybertaxonomy/utis");
         for (BeanDefinition component : components)
         {
             subClasses.add((Class<T>) Class.forName(component.getBeanClassName()));
