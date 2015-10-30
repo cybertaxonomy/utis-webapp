@@ -2,6 +2,23 @@ UTIS - README
 ====================
 
 
+
+Installation
+-----------------------------
+
+At the example of jetty8 in Debian like systems:
+
+**Requirements**
+You need to run utis with an Oracle JVM 1.7
+
+1. place the eubon-utis.war in /var/lib/jetty8/webapps/
+2. create the folder for local stores: 
+   sudo mkdir /var/lib/utis
+   sudo chown -R jetty:adm  /var/lib/utis
+3. Start jetty
+   /etc/init.d/jetty8 start   
+
+
 The URIs UTIS is listening at
 ------------------------------
 
