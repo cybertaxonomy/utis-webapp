@@ -13,7 +13,7 @@
     <spring.version>3.2.7.RELEASE</spring.version>
     <jackson.version>2.2.3</jackson.version>
     <java.codelevel>1.6</java.codelevel>
-    <utis-core.version>1.1.2</utis-core.version>
+    <utis-core.version>1.2.0-SNAPSHOT</utis-core.version>
   </properties>
 
   <repositories>
