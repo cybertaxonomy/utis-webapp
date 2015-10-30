@@ -10,6 +10,9 @@
 #
 -->
 <Configuration>
+  <Properties>
+    <Property name="log-path">/var/log/jetty8</Property>
+  </Properties>
   <Appenders>
     <Console name="STDOUT" target="SYSTEM_OUT">
       <PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n"/>
@@ -17,15 +20,27 @@
       <PatternLayout pattern="%d %-5p %C{2} - %m%n"/>
       -->
     </Console>
+    <!-- 
+    <RollingFile name="file-log" fileName="${log-path}/utis.log" filePattern="${log-path}/utis-%d{yyyy-MM-dd}.log">
+      <PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n"/>
+      <Policies>
+      <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+      </Policies>
+    </RollingFile>
+    -->
   </Appenders>
   <Loggers>
     <Logger name="org.apache.log4j.xml" level="info"/>
     <Logger name="com.mangofactory.swagger" level="info"/>
     <Logger name="org.bgbm.utis" level="info"/>
     <Logger name="org.cybertaxonomy.utis" level="info"/>
-<!--     <Logger name="org.springframework.web.servlet.view" level="debug"/> -->
+    <Logger name="org.springframework" level="error"/>
+    <Logger name="org.springframework.web.servlet.view" level="error"/>
     <Root level="info">
       <AppenderRef ref="STDOUT"/>
+      <!-- 
+      <AppenderRef ref="file-log"/> 
+      -->
     </Root>
   </Loggers>
 </Configuration>
