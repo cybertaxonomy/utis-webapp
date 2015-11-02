@@ -17,8 +17,6 @@ import javax.servlet.ServletContext;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bgbm.utis.jackson.ClassificationMixIn;
-import org.cybertaxonomy.utis.tnr.msg.Classification;
 import org.cybertaxonomy.utis.tnr.msg.TnrMsg;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -143,8 +141,6 @@ public class SpringMVCConfig extends WebMvcConfigurerAdapter {
             public View resolveViewName(String viewName, Locale locale) throws Exception {
                 MappingJacksonJsonView view = new MappingJacksonJsonView();
                 view.setPrettyPrint(true);
-                view.getObjectMapper().getSerializationConfig()
-                        .addMixInAnnotations(Classification.class, ClassificationMixIn.class);
 
                 return view;
             }
