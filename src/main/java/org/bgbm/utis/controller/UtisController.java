@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.cybertaxonomy.utis.checklist.BaseChecklistClient;
 import org.cybertaxonomy.utis.checklist.BgbmEditClient;
 import org.cybertaxonomy.utis.checklist.DRFChecklistException;
-import org.cybertaxonomy.utis.checklist.EEA_BDC_Client;
+import org.cybertaxonomy.utis.checklist.EUNIS_Client;
 import org.cybertaxonomy.utis.checklist.GBIFBetaBackboneClient;
 import org.cybertaxonomy.utis.checklist.PESIClient;
 import org.cybertaxonomy.utis.checklist.SearchMode;
@@ -132,7 +132,7 @@ public class UtisController {
         }
 
         defaultProviders.add(serviceProviderInfoMap.get(PESIClient.ID));
-        defaultProviders.add(serviceProviderInfoMap.get(EEA_BDC_Client.ID));
+        defaultProviders.add(serviceProviderInfoMap.get(EUNIS_Client.ID));
         defaultProviders.add(serviceProviderInfoMap.get(BgbmEditClient.ID));
         defaultProviders.add(serviceProviderInfoMap.get(WoRMSClient.ID));
     }
