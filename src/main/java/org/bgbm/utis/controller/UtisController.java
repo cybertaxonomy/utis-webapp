@@ -244,7 +244,7 @@ public class UtisController {
                     + "sub providers. If the id of the parent provider is supplied all subproviders will "
                     + "be queried. The query can also be restriced to one or more subproviders by "
                     + "using the following syntax: parent-id[sub-id-1,sub-id2,...]",
-                    defaultValue="pesi,bgbm-cdm-server[col]",
+                    defaultValue="pesi,eunis,bgbm-cdm-server[col]",
                     required=false)
                 @RequestParam(value = "providers", required = false)
                 String providers,
