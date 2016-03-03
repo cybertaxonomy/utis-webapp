@@ -250,7 +250,7 @@ public class UtisController {
                 String providers,
                 @ApiParam(value = "Specifies the searchMode. "
                         + "Possible search modes are: scientificNameExact, scientificNameLike (begins with), vernacularNameExact, "
-                        + "vernacularNameLike (contains), findByIdentifier. "
+                        + "vernacularNameLike (contains), findByIdentifier, taxonomicChildren. "
                         + "If the a provider does not support the chosen searchMode it will be skipped and "
                         + "the status message in the tnrClientStatus will be set to 'unsupported search mode' in this case.")
                 @RequestParam(value = "searchMode", required = false, defaultValue="scientificNameExact")
