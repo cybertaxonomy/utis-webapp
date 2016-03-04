@@ -47,6 +47,7 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -198,6 +199,101 @@ public class UtisController {
 
 
 
+    /**
+     * @param timeout
+     * @param providerList
+     * @param tnrMsg
+     */
+    private void executeTnrRequest(Long timeout, List<ServiceProviderInfo> providerList, TnrMsg tnrMsg) {
+        // query all providers
+           List<ChecklistClientRunner> runners = new ArrayList<ChecklistClientRunner>(providerList.size());
+           for (ServiceProviderInfo info : providerList) {
+               BaseChecklistClient client = clientFactory.newClient(clientClassMap.get(info.getId()));
+               if(client != null){
+                   logger.debug("sending query to " + info.getId());
+                   ChecklistClientRunner runner = new ChecklistClientRunner(client, tnrMsg);
+                   runner.start();
+                   runners.add(runner);
+               }
+           }
+
+           // wait for the responses
+           logger.debug("All runners started, now waiting for them to complete ...");
+           for(ChecklistClientRunner runner : runners){
+               try {
+                   logger.debug("waiting for client runner '" + runner.getClient());
+                   runner.join(timeout);
+               } catch (InterruptedException e) {
+                   logger.debug("client runner '" + runner.getClient() + "' was interrupted", e);
+               }
+           }
+           logger.debug("end of waiting (all runners completed or timed out)");
+
+           // collect, re-order the responses and set the status
+           Query currentQuery = tnrMsg.getQuery().get(0); // TODO HACK: we only are treating one query
+           List<Response> tnrResponses = currentQuery.getResponse();
+           List<Response> tnrResponsesOrderd = new ArrayList<Response>(tnrResponses.size());
+
+           for(ChecklistClientRunner runner : runners){
+               ServiceProviderInfo info = runner.getClient().getServiceProviderInfo();
+               ClientStatus tnrStatus = TnrMsgUtils.tnrClientStatusFor(info);
+               Response tnrResponse = null;
+
+               // --- handle all exception states and create one tnrResonse which will contain the status
+               if(runner.isInterrupted()){
+                   logger.debug("client runner '" + runner.getClient() + "' was interrupted");
+                   tnrStatus.setStatusMessage("interrupted");
+               }
+               else
+               if(runner.isAlive()){
+                   logger.debug("client runner '" + runner.getClient() + "' has timed out");
+                   tnrStatus.setStatusMessage("timeout");
+               }
+               else
+               if(runner.isUnsupportedMode()){
+                   logger.debug("client runner '" + runner.getClient() + "' : unsupported search mode");
+                   tnrStatus.setStatusMessage("unsupported search mode");
+               }
+               else
+               if(runner.isUnsupportedIdentifier()){
+                   logger.debug("client runner '" + runner.getClient() + "' : identifier type not supported");
+                   tnrStatus.setStatusMessage("identifier type not supported");
+               }
+               else {
+
+                   tnrStatus.setStatusMessage("ok");
+                   // --- collect the ServiceProviderInfo objects by which the responses will be ordered
+                   List<ServiceProviderInfo> ServiceProviderInfos;
+                   if(info.getSubChecklists() != null && !info.getSubChecklists().isEmpty()){
+                       // for subchecklists we will have to look for responses of each of the subchecklists
+                       ServiceProviderInfos = info.getSubChecklists();
+                   } else {
+                       // otherwise we only look for the responses of one checklist
+                       ServiceProviderInfos = new ArrayList<ServiceProviderInfo>(1);
+                       ServiceProviderInfos.add(info);
+                   }
+
+                   // --- order the tnrResponses
+                   for(ServiceProviderInfo subInfo : ServiceProviderInfos){
+                       tnrResponse = null;
+                       for(Response tnrr : tnrResponses){
+                           // TODO compare by id, requires model change
+                           if(subInfo.getLabel().equals(tnrr.getChecklist())){
+                               tnrResponse = tnrr;
+                               tnrStatus.setDuration(BigDecimal.valueOf(runner.getDuration()));
+                               tnrResponsesOrderd.add(tnrResponse);
+                           }
+                       }
+                   }
+
+               }
+               currentQuery.getClientStatus().add(tnrStatus);
+           }
+           currentQuery.getResponse().clear();
+           currentQuery.getResponse().addAll(tnrResponsesOrderd);
+    }
+
+
     @RequestMapping(method = { RequestMethod.GET }, value = "/capabilities")
     public @ResponseBody List<ServiceProviderInfo> capabilities(HttpServletRequest request, HttpServletResponse response) {
         return defaultProviders;
@@ -274,96 +370,113 @@ public class UtisController {
 
         TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(queryString, searchMode, addSynonymy);
 
-        // query all providers
-        List<ChecklistClientRunner> runners = new ArrayList<ChecklistClientRunner>(providerList.size());
-        for (ServiceProviderInfo info : providerList) {
-            BaseChecklistClient client = clientFactory.newClient(clientClassMap.get(info.getId()));
-            if(client != null){
-                logger.debug("sending query to " + info.getId());
-                ChecklistClientRunner runner = new ChecklistClientRunner(client, tnrMsg);
-                runner.start();
-                runners.add(runner);
-            }
-        }
-
-        // wait for the responses
-        logger.debug("All runners started, now waiting for them to complete ...");
-        for(ChecklistClientRunner runner : runners){
-            try {
-                logger.debug("waiting for client runner '" + runner.getClient());
-                runner.join(timeout);
-            } catch (InterruptedException e) {
-                logger.debug("client runner '" + runner.getClient() + "' was interrupted", e);
-            }
-        }
-        logger.debug("end of waiting (all runners completed or timed out)");
-
-        // collect, re-order the responses and set the status
-        Query currentQuery = tnrMsg.getQuery().get(0); // TODO HACK: we only are treating one query
-        List<Response> tnrResponses = currentQuery.getResponse();
-        List<Response> tnrResponsesOrderd = new ArrayList<Response>(tnrResponses.size());
-
-        for(ChecklistClientRunner runner : runners){
-            ServiceProviderInfo info = runner.getClient().getServiceProviderInfo();
-            ClientStatus tnrStatus = TnrMsgUtils.tnrClientStatusFor(info);
-            Response tnrResponse = null;
-
-            // --- handle all exception states and create one tnrResonse which will contain the status
-            if(runner.isInterrupted()){
-                logger.debug("client runner '" + runner.getClient() + "' was interrupted");
-                tnrStatus.setStatusMessage("interrupted");
-            }
-            else
-            if(runner.isAlive()){
-                logger.debug("client runner '" + runner.getClient() + "' has timed out");
-                tnrStatus.setStatusMessage("timeout");
-            }
-            else
-            if(runner.isUnsupportedMode()){
-                logger.debug("client runner '" + runner.getClient() + "' : unsupported search mode");
-                tnrStatus.setStatusMessage("unsupported search mode");
-            }
-            else
-            if(runner.isUnsupportedIdentifier()){
-                logger.debug("client runner '" + runner.getClient() + "' : identifier type not supported");
-                tnrStatus.setStatusMessage("identifier type not supported");
-            }
-            else {
-
-                tnrStatus.setStatusMessage("ok");
-                // --- collect the ServiceProviderInfo objects by which the responses will be ordered
-                List<ServiceProviderInfo> ServiceProviderInfos;
-                if(info.getSubChecklists() != null && !info.getSubChecklists().isEmpty()){
-                    // for subchecklists we will have to look for responses of each of the subchecklists
-                    ServiceProviderInfos = info.getSubChecklists();
-                } else {
-                    // otherwise we only look for the responses of one checklist
-                    ServiceProviderInfos = new ArrayList<ServiceProviderInfo>(1);
-                    ServiceProviderInfos.add(info);
-                }
-
-                // --- order the tnrResponses
-                for(ServiceProviderInfo subInfo : ServiceProviderInfos){
-                    tnrResponse = null;
-                    for(Response tnrr : tnrResponses){
-                        // TODO compare by id, requires model change
-                        if(subInfo.getLabel().equals(tnrr.getChecklist())){
-                            tnrResponse = tnrr;
-                            tnrStatus.setDuration(BigDecimal.valueOf(runner.getDuration()));
-                            tnrResponsesOrderd.add(tnrResponse);
-                        }
-                    }
-                }
-
-            }
-            currentQuery.getClientStatus().add(tnrStatus);
-        }
-        currentQuery.getResponse().clear();
-        currentQuery.getResponse().addAll(tnrResponsesOrderd);
-
-
+        executeTnrRequest(timeout, providerList, tnrMsg);
         return tnrMsg;
     }
+
+
+    /**
+    *
+    * @param taxonId The complete canonical scientific name to search for. For
+    *          example: <code>Bellis perennis</code>, <code>Prionus</code> or
+    *          <code>Bolinus brandaris</code>.
+    *          This is a exact search so wildcard characters are not supported.
+    *
+    * @param providers
+    *            A list of provider id strings concatenated by comma
+    *            characters. The default : <code>pesi,edit</code> will be used
+    *            if this parameter is not set. A list of all available provider
+    *            ids can be obtained from the <code>/capabilities</code> service
+    *            end point.
+    * @param request
+    * @param response
+    * @return
+    * @throws DRFChecklistException
+    * @throws JsonGenerationException
+    * @throws JsonMappingException
+    * @throws IOException
+    */
+   @RequestMapping(method = { RequestMethod.GET }, value = "/classification/{taxonId}/parent")
+   public @ResponseBody
+   TnrMsg higherClassification(
+               @ApiParam(
+                   value = "The identifier for the taxon. (LSID, DOI, URI, or any other identifier used by the checklist provider)"
+                   ,required=true)
+               @PathVariable(value = "taxonId")
+               String taxonId,
+               @ApiParam(value = "A list of provider id strings concatenated by comma "
+                   +"characters. The default : \"pesi,bgbm-cdm-server[col]\" will be used "
+                   + "if this parameter is not set. A list of all available provider "
+                   +"ids can be obtained from the '/capabilities' service "
+                   +"end point. "
+                   + "Providers can be nested, that is a parent provider can have "
+                   + "sub providers. If the id of the parent provider is supplied all subproviders will "
+                   + "be queried. The query can also be restriced to one or more subproviders by "
+                   + "using the following syntax: parent-id[sub-id-1,sub-id2,...]",
+                   defaultValue="pesi,eunis,bgbm-cdm-server[col]",
+                   required=false)
+               @RequestParam(value = "providers", required = false)
+               String providers,
+               @ApiParam(value = "The maximum of milliseconds to wait for responses from any of the providers. "
+                       + "If the timeout is exceeded the service will jut return the resonses that have been "
+                       + "received so far. The default timeout is 0 ms (wait for ever)")
+               @RequestParam(value = "timeout", required = false, defaultValue="0")
+               Long timeout,
+               HttpServletRequest request,
+               HttpServletResponse response
+           ) throws DRFChecklistException, JsonGenerationException, JsonMappingException,
+           IOException {
+
+
+       List<ServiceProviderInfo> providerList = createProviderList(providers, response);
+
+       TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, SearchMode.higherClassification, false);
+
+       executeTnrRequest(timeout, providerList, tnrMsg);
+
+       return tnrMsg;
+   }
+
+   @RequestMapping(method = { RequestMethod.GET }, value = "/classification/{taxonId}/children")
+   public @ResponseBody
+   TnrMsg taxonomicChildren(
+               @ApiParam(
+                   value = "The identifier for the taxon. (LSID, DOI, URI, or any other identifier used by the checklist provider)"
+                   ,required=true)
+               @PathVariable(value = "taxonId")
+               String taxonId,
+               @ApiParam(value = "A list of provider id strings concatenated by comma "
+                   +"characters. The default : \"pesi,bgbm-cdm-server[col]\" will be used "
+                   + "if this parameter is not set. A list of all available provider "
+                   +"ids can be obtained from the '/capabilities' service "
+                   +"end point. "
+                   + "Providers can be nested, that is a parent provider can have "
+                   + "sub providers. If the id of the parent provider is supplied all subproviders will "
+                   + "be queried. The query can also be restriced to one or more subproviders by "
+                   + "using the following syntax: parent-id[sub-id-1,sub-id2,...]",
+                   defaultValue="pesi,eunis,bgbm-cdm-server[col]",
+                   required=false)
+               @RequestParam(value = "providers", required = false)
+               String providers,
+               @ApiParam(value = "The maximum of milliseconds to wait for responses from any of the providers. "
+                       + "If the timeout is exceeded the service will jut return the resonses that have been "
+                       + "received so far. The default timeout is 0 ms (wait for ever)")
+               @RequestParam(value = "timeout", required = false, defaultValue="0")
+               Long timeout,
+               HttpServletRequest request,
+               HttpServletResponse response
+           ) throws DRFChecklistException, JsonGenerationException, JsonMappingException,
+           IOException {
+
+
+       List<ServiceProviderInfo> providerList = createProviderList(providers, response);
+
+       TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, SearchMode.taxonomicChildren, false);
+
+       executeTnrRequest(timeout, providerList, tnrMsg);
+
+       return tnrMsg;
+   }
 
 
 }
