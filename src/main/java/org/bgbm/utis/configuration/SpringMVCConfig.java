@@ -18,6 +18,7 @@ import javax.servlet.ServletContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cybertaxonomy.utis.tnr.msg.TnrMsg;
+import org.cybertaxonomy.utis.utils.VersionInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -191,7 +192,8 @@ public class SpringMVCConfig extends WebMvcConfigurerAdapter {
        // which matches anything and hence all RequestMappings. Here we define it explicitly
       return new SwaggerSpringMvcPlugin(this.springSwaggerConfig)
               .apiInfo(apiInfo()).
-              includePatterns(".*?");
+              includePatterns(".*?").
+              apiVersion(VersionInfo.version());
    }
 
    private ApiInfo apiInfo() {

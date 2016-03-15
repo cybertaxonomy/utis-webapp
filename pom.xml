@@ -129,6 +129,28 @@
 
   <build>
     <finalName>eubon-utis</finalName>
+    <resources>
+      <!-- ${basedir}/src/main/resources -->
+      <resource>
+        <!-- replace the project-version placeholder in html files
+          file. This property can then be used to retrieve the version number in the 
+          Bootloader -->
+        <targetPath>${project.build.directory}/classes</targetPath>
+        <filtering>true</filtering>
+        <directory>${basedir}/src/main/resources</directory>
+        <includes>
+          <include>index.html</include>
+        </includes>
+      </resource>
+      <resource>
+        <!-- all other files in classes -->
+        <targetPath>${project.build.directory}/classes</targetPath>
+        <directory>${basedir}/src/main/resources</directory>
+        <excludes>
+          <exclude>index.html</exclude>
+        </excludes>
+      </resource>
+    </resources>
       <plugins>
         <plugin>
         <groupId>org.apache.maven.plugins</groupId>
