@@ -123,7 +123,8 @@ public class UtisController {
                 ServiceProviderInfo info = client.buildServiceProviderInfo();
 
                 clientClassMap.put(info.getId(), clientClass);
-                info.setSearchModes(client.getSearchModes()); // TODO setSearchModes should be done in client impl
+                info.getSupportedActions().addAll(client.getSearchModes());
+                info.getSupportedActions().addAll(client.getClassificationActions());// TODO setSearchModes should be done in client impl
                 serviceProviderInfoMap.put(info.getId(), info);
 
             } catch (InstantiationException e) {
