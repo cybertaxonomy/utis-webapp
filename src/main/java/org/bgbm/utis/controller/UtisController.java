@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.cybertaxonomy.utis.checklist.BaseChecklistClient;
 import org.cybertaxonomy.utis.checklist.BgbmEditClient;
+import org.cybertaxonomy.utis.checklist.ClassificationAction;
 import org.cybertaxonomy.utis.checklist.DRFChecklistException;
 import org.cybertaxonomy.utis.checklist.EUNIS_Client;
 import org.cybertaxonomy.utis.checklist.GBIFBetaBackboneClient;
@@ -348,7 +349,7 @@ public class UtisController {
                 String providers,
                 @ApiParam(value = "Specifies the searchMode. "
                         + "Possible search modes are: scientificNameExact, scientificNameLike (begins with), vernacularNameExact, "
-                        + "vernacularNameLike (contains), findByIdentifier, taxonomicChildren. "
+                        + "vernacularNameLike (contains), findByIdentifier"
                         + "If the a provider does not support the chosen searchMode it will be skipped and "
                         + "the status message in the tnrClientStatus will be set to 'unsupported search mode' in this case.")
                 @RequestParam(value = "searchMode", required = false, defaultValue="scientificNameExact")
@@ -435,7 +436,7 @@ public class UtisController {
 
        List<ServiceProviderInfo> providerList = createProviderList(providers, response);
 
-       TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, SearchMode.higherClassification, false);
+       TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, ClassificationAction.higherClassification, false);
 
        executeTnrRequest(timeout, providerList, tnrMsg);
 
@@ -476,7 +477,7 @@ public class UtisController {
 
        List<ServiceProviderInfo> providerList = createProviderList(providers, response);
 
-       TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, SearchMode.taxonomicChildren, false);
+       TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, ClassificationAction.taxonomicChildren, false);
 
        executeTnrRequest(timeout, providerList, tnrMsg);
 

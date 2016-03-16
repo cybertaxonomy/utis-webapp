@@ -30,7 +30,7 @@ public class ChecklistClientRunner extends Thread{
         this.client = client;
         this.tnrMsg = tnrMsg;
         TnrMsgUtils.assertSearchModeSet(tnrMsg, true);
-        unsupportedMode = !client.getSearchModes().contains(TnrMsgUtils.getSearchMode(tnrMsg));
+        unsupportedMode = !client.isSupportedAction(TnrMsgUtils.getUtisAction(tnrMsg));
     }
 
     @Override
