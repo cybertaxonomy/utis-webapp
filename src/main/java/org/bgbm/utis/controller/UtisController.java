@@ -67,6 +67,8 @@ import com.wordnik.swagger.annotations.ApiParam;
 @RequestMapping(produces={"application/json","application/xml"}) // produces is needed for swagger)
 public class UtisController {
 
+    private static final int MIN_QUERY_STRING_LEN = 3;
+
     protected Logger logger = LoggerFactory.getLogger(UtisController.class);
 
     private Map<String, ServiceProviderInfo> serviceProviderInfoMap;
@@ -325,9 +327,9 @@ public class UtisController {
     public @ResponseBody
     TnrMsg search(
                 @ApiParam(
-                    value = "The scientific name to search for. "
+                    value = "The scientific name, vernacular name or identifier to search for. "
                     +"For example: \"Bellis perennis\", \"Prionus\" or \"Bolinus brandaris\". "
-                    +"This is an exact search so wildcard characters are not supported."
+                    + "The search string must have a minimum lenght of 3 characters."
                     ,required=true)
                 @RequestParam(value = "query", required = false)
                 String queryString,
@@ -365,6 +367,9 @@ public class UtisController {
             ) throws DRFChecklistException, JsonGenerationException, JsonMappingException,
             IOException {
 
+        if(queryString.length() < MIN_QUERY_STRING_LEN) {
+            throw new MinQueryStringException();
+        }
 
         List<ServiceProviderInfo> providerList = createProviderList(providers, response);
 
