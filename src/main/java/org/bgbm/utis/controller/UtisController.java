@@ -328,44 +328,50 @@ public class UtisController {
     @RequestMapping(method = { RequestMethod.GET }, value = "/search")
     public @ResponseBody
     TnrMsg search(
-                @ApiParam(
-                    value = "The scientific name, vernacular name or identifier to search for. "
-                    +"For example: \"Bellis perennis\", \"Prionus\" or \"Bolinus brandaris\". "
-                    + "The search string must have a minimum lenght of 3 characters."
-                    ,required=true)
-                @RequestParam(value = "query", required = false)
+                // @formatter:off
+                    @ApiParam(
+                        value = "The scientific name, vernacular name or identifier to search for. "
+                        +"For example: \"Bellis perennis\", \"Prionus\" or \"Bolinus brandaris\". "
+                        + "The search string must have a minimum lenght of 3 characters."
+                        ,required=true)
+                    @RequestParam(value = "query", required = false)
                 String queryString,
-                @ApiParam(value = "A list of provider id strings concatenated by comma "
-                    +"characters. The default : \"pesi,bgbm-cdm-server[col]\" will be used "
-                    + "if this parameter is not set. A list of all available provider "
-                    +"ids can be obtained from the '/capabilities' service "
-                    +"end point. "
-                    + "Providers can be nested, that is a parent provider can have "
-                    + "sub providers. If the id of the parent provider is supplied all subproviders will "
-                    + "be queried. The query can also be restriced to one or more subproviders by "
-                    + "using the following syntax: parent-id[sub-id-1,sub-id2,...]",
-                    defaultValue="pesi,eunis,bgbm-cdm-server[col]",
-                    required=false)
-                @RequestParam(value = "providers", required = false)
+                    @ApiParam(value = "A list of provider id strings concatenated by comma "
+                        +"characters. The default : \"pesi,bgbm-cdm-server[col]\" will be used "
+                        + "if this parameter is not set. A list of all available provider "
+                        +"ids can be obtained from the '/capabilities' service "
+                        +"end point. "
+                        + "Providers can be nested, that is a parent provider can have "
+                        + "sub providers. If the id of the parent provider is supplied all subproviders will "
+                        + "be queried. The query can also be restriced to one or more subproviders by "
+                        + "using the following syntax: parent-id[sub-id-1,sub-id2,...]",
+                        defaultValue="pesi,eunis,bgbm-cdm-server[col]",
+                        required=false)
+                    @RequestParam(value = "providers", required = false)
                 String providers,
-                @ApiParam(value = "Specifies the searchMode. "
-                        + "Possible search modes are: scientificNameExact, scientificNameLike (begins with), vernacularNameExact, "
-                        + "vernacularNameLike (contains), findByIdentifier"
-                        + "If the a provider does not support the chosen searchMode it will be skipped and "
-                        + "the status message in the tnrClientStatus will be set to 'unsupported search mode' in this case.")
-                @RequestParam(value = "searchMode", required = false, defaultValue="scientificNameExact")
+                    @ApiParam(value = "Specifies the searchMode. "
+                            + "Possible search modes are: scientificNameExact, scientificNameLike (begins with), vernacularNameExact, "
+                            + "vernacularNameLike (contains), findByIdentifier"
+                            + "If the a provider does not support the chosen searchMode it will be skipped and "
+                            + "the status message in the tnrClientStatus will be set to 'unsupported search mode' in this case.")
+                    @RequestParam(value = "searchMode", required = false, defaultValue="scientificNameExact")
                 SearchMode searchMode,
-                @ApiParam(value = "Indicates whether the synonymy of the accepted taxon should be included into the response. "
-                        + "Turning this option on may cause an increased response time.")
-                @RequestParam(value = "addSynonymy", required = false, defaultValue="false")
+                    @ApiParam(value = "Indicates whether the synonymy of the accepted taxon should be included into the response. "
+                            + "Turning this option on may cause an increased response time.")
+                    @RequestParam(value = "addSynonymy", required = false, defaultValue="false")
                 Boolean addSynonymy,
-                @ApiParam(value = "The maximum of milliseconds to wait for responses from any of the providers. "
-                        + "If the timeout is exceeded the service will jut return the resonses that have been "
-                        + "received so far. The default timeout is 0 ms (wait for ever)")
-                @RequestParam(value = "timeout", required = false, defaultValue="0")
+                    @ApiParam(value = "Indicates whether the the parent taxon of the accepted taxon should be included into the response. "
+                            + "Turning this option on may cause a slightly increased response time.")
+                    @RequestParam(value = "addParentTaxon", required = false, defaultValue="false")
+                Boolean addParentTaxon,
+                    @ApiParam(value = "The maximum of milliseconds to wait for responses from any of the providers. "
+                            + "If the timeout is exceeded the service will jut return the resonses that have been "
+                            + "received so far. The default timeout is 0 ms (wait for ever)")
+                    @RequestParam(value = "timeout", required = false, defaultValue="0")
                 Long timeout,
                 HttpServletRequest request,
                 HttpServletResponse response
+                //@formatter:on
             ) throws DRFChecklistException, JsonGenerationException, JsonMappingException,
             IOException {
 
@@ -375,7 +381,7 @@ public class UtisController {
 
         List<ServiceProviderInfo> providerList = createProviderList(providers, response);
 
-        TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(queryString, searchMode, addSynonymy);
+        TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(queryString, searchMode, addSynonymy, addParentTaxon);
 
         executeTnrRequest(timeout, providerList, tnrMsg);
         return tnrMsg;
@@ -406,6 +412,7 @@ public class UtisController {
    @RequestMapping(method = { RequestMethod.GET }, value = "/classification/{taxonId}/parent")
    public @ResponseBody
    TnrMsg higherClassification(
+               // @formatter:off
                @ApiParam(
                    value = "The identifier for the taxon. (LSID, DOI, URI, or any other identifier used by the checklist provider)"
                    ,required=true)
@@ -431,13 +438,14 @@ public class UtisController {
                Long timeout,
                HttpServletRequest request,
                HttpServletResponse response
+               // @formatter:on
            ) throws DRFChecklistException, JsonGenerationException, JsonMappingException,
            IOException {
 
 
        List<ServiceProviderInfo> providerList = createProviderList(providers, response);
 
-       TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, ClassificationAction.higherClassification, false);
+       TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, ClassificationAction.higherClassification, false, false);
 
        executeTnrRequest(timeout, providerList, tnrMsg);
 
@@ -447,38 +455,40 @@ public class UtisController {
    @RequestMapping(method = { RequestMethod.GET }, value = "/classification/{taxonId}/children")
    public @ResponseBody
    TnrMsg taxonomicChildren(
-               @ApiParam(
-                   value = "The identifier for the taxon. (LSID, DOI, URI, or any other identifier used by the checklist provider)"
-                   ,required=true)
-               @PathVariable(value = "taxonId")
+               // @formatter:off
+                   @ApiParam(
+                       value = "The identifier for the taxon. (LSID, DOI, URI, or any other identifier used by the checklist provider)"
+                       ,required=true)
+                   @PathVariable(value = "taxonId")
                String taxonId,
-               @ApiParam(value = "A list of provider id strings concatenated by comma "
-                   +"characters. The default : \"pesi,bgbm-cdm-server[col]\" will be used "
-                   + "if this parameter is not set. A list of all available provider "
-                   +"ids can be obtained from the '/capabilities' service "
-                   +"end point. "
-                   + "Providers can be nested, that is a parent provider can have "
-                   + "sub providers. If the id of the parent provider is supplied all subproviders will "
-                   + "be queried. The query can also be restriced to one or more subproviders by "
-                   + "using the following syntax: parent-id[sub-id-1,sub-id2,...]",
-                   defaultValue="pesi,eunis,bgbm-cdm-server[col]",
-                   required=false)
-               @RequestParam(value = "providers", required = false)
+                   @ApiParam(value = "A list of provider id strings concatenated by comma "
+                       +"characters. The default : \"pesi,bgbm-cdm-server[col]\" will be used "
+                       + "if this parameter is not set. A list of all available provider "
+                       +"ids can be obtained from the '/capabilities' service "
+                       +"end point. "
+                       + "Providers can be nested, that is a parent provider can have "
+                       + "sub providers. If the id of the parent provider is supplied all subproviders will "
+                       + "be queried. The query can also be restriced to one or more subproviders by "
+                       + "using the following syntax: parent-id[sub-id-1,sub-id2,...]",
+                       defaultValue="pesi,eunis,bgbm-cdm-server[col]",
+                       required=false)
+                   @RequestParam(value = "providers", required = false)
                String providers,
-               @ApiParam(value = "The maximum of milliseconds to wait for responses from any of the providers. "
-                       + "If the timeout is exceeded the service will jut return the resonses that have been "
-                       + "received so far. The default timeout is 0 ms (wait for ever)")
-               @RequestParam(value = "timeout", required = false, defaultValue="0")
+                   @ApiParam(value = "The maximum of milliseconds to wait for responses from any of the providers. "
+                           + "If the timeout is exceeded the service will jut return the resonses that have been "
+                           + "received so far. The default timeout is 0 ms (wait for ever)")
+                   @RequestParam(value = "timeout", required = false, defaultValue="0")
                Long timeout,
                HttpServletRequest request,
                HttpServletResponse response
+               // @formatter:on
            ) throws DRFChecklistException, JsonGenerationException, JsonMappingException,
            IOException {
 
 
        List<ServiceProviderInfo> providerList = createProviderList(providers, response);
 
-       TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, ClassificationAction.taxonomicChildren, false);
+       TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, ClassificationAction.taxonomicChildren, false, false);
 
        executeTnrRequest(timeout, providerList, tnrMsg);
 
