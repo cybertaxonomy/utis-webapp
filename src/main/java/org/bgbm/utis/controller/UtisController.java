@@ -207,8 +207,9 @@ public class UtisController {
      * @param timeout
      * @param providerList
      * @param tnrMsg
+     * @param dedupHashProvider TODO
      */
-    private void executeTnrRequest(Long timeout, List<ServiceProviderInfo> providerList, TnrMsg tnrMsg) {
+    private void executeTnrRequest(Long timeout, List<ServiceProviderInfo> providerList, TnrMsg tnrMsg, DeduplicationHashProvider dedupHashProvider) {
         // query all providers
            List<ChecklistClientRunner> runners = new ArrayList<ChecklistClientRunner>(providerList.size());
            for (ServiceProviderInfo info : providerList) {
@@ -236,7 +237,7 @@ public class UtisController {
            // collect, re-order the responses and set the status
            Query currentQuery = tnrMsg.getQuery().get(0); // TODO HACK: we only are treating one query
            List<Response> tnrResponses = currentQuery.getResponse();
-           List<Response> tnrResponsesOrderd = new ArrayList<Response>(tnrResponses.size());
+           List<Response> tnrResponsesOrdered = new ArrayList<Response>(tnrResponses.size());
 
            for(ChecklistClientRunner runner : runners){
                ServiceProviderInfo info = runner.getClient().getServiceProviderInfo();
@@ -285,16 +286,35 @@ public class UtisController {
                            if(subInfo.getLabel().equals(tnrr.getChecklist())){
                                tnrResponse = tnrr;
                                tnrStatus.setDuration(BigDecimal.valueOf(runner.getDuration()));
-                               tnrResponsesOrderd.add(tnrResponse);
+                               tnrResponsesOrdered.add(tnrResponse);
                            }
                        }
                    }
 
+
+
                }
                currentQuery.getClientStatus().add(tnrStatus);
            }
+
+
+           // --- remove duplicates from the response
+           if(dedupHashProvider != null) {
+               List<Response> tnrResponsesTmp = tnrResponsesOrdered;
+               HashSet<String> dedup = new HashSet<String>(tnrResponsesTmp.size());
+               tnrResponsesOrdered = new ArrayList<Response>(tnrResponsesTmp.size());
+               for (Response r : tnrResponsesTmp) {
+                   String hash = dedupHashProvider.hash(r.getTaxon());
+                   logger.debug(r.getTaxon().getTaxonName().getScientificName() + " - " + hash);
+                   if(dedup.add(hash)) {
+                       logger.debug(r.getTaxon().getTaxonName().getScientificName() + " - added");
+                       tnrResponsesOrdered.add(r);
+                   }
+               }
+           }
+
            currentQuery.getResponse().clear();
-           currentQuery.getResponse().addAll(tnrResponsesOrderd);
+           currentQuery.getResponse().addAll(tnrResponsesOrdered);
     }
 
 
@@ -364,6 +384,15 @@ public class UtisController {
                             + "Turning this option on may cause a slightly increased response time.")
                     @RequestParam(value = "addParentTaxon", required = false, defaultValue="false")
                 Boolean addParentTaxon,
+                @ApiParam(value = "Allows to deduplicate the resuls by making use of a deduplication strategy. "
+                        + "The deduplication is done by comparing specific properties of the"
+                        + " taxon:\n"
+                        + "- id: compares 'taxon.identifier'\n"
+                        + "- id_name: compares 'taxon.identifier' AND 'taxon.taxonName.scientificName'\n"
+                        + "- name: compares 'taxon.taxonName.scientificName'\n"
+                        + "Using the pure 'name' strategy is not recommended.")
+                @RequestParam(value = "dedup", required = false)
+                DeduplicationHashProvider dedupHashProvider,
                     @ApiParam(value = "The maximum of milliseconds to wait for responses from any of the providers. "
                             + "If the timeout is exceeded the service will jut return the resonses that have been "
                             + "received so far. The default timeout is 0 ms (wait for ever)")
@@ -383,7 +412,7 @@ public class UtisController {
 
         TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(queryString, searchMode, addSynonymy, addParentTaxon);
 
-        executeTnrRequest(timeout, providerList, tnrMsg);
+        executeTnrRequest(timeout, providerList, tnrMsg, dedupHashProvider);
         return tnrMsg;
     }
 
@@ -447,7 +476,7 @@ public class UtisController {
 
        TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, ClassificationAction.higherClassification, false, false);
 
-       executeTnrRequest(timeout, providerList, tnrMsg);
+       executeTnrRequest(timeout, providerList, tnrMsg, null);
 
        return tnrMsg;
    }
@@ -490,7 +519,7 @@ public class UtisController {
 
        TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, ClassificationAction.taxonomicChildren, false, false);
 
-       executeTnrRequest(timeout, providerList, tnrMsg);
+       executeTnrRequest(timeout, providerList, tnrMsg, null);
 
        return tnrMsg;
    }
