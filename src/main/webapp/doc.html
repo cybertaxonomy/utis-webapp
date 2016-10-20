@@ -30,8 +30,10 @@
 
 <script type="text/javascript">
     $(function() {
+        var myPath = window.location.pathname.replace(/\/doc\.html.*$/, '');
+        // alert(myPath);
         window.swaggerUi = new SwaggerUi({
-            url : "/eubon-utis/api-docs",
+            url : myPath + "/api-docs",
             dom_id : "swagger-ui-container",
             supportedSubmitMethods : [ 'get', 'post', 'put', 'delete' ],
             onComplete : function(swaggerApi, swaggerUi) {
