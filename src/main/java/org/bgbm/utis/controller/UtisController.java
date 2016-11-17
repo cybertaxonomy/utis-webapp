@@ -352,7 +352,7 @@ public class UtisController {
                     @ApiParam(
                         value = "The scientific name, vernacular name or identifier to search for. "
                         +"For example: \"Bellis perennis\", \"Prionus\" or \"Bolinus brandaris\". "
-                        + "The search string must have a minimum lenght of 3 characters."
+                        + "The search string must have a minimum length of 3 characters."
                         ,required=true)
                     @RequestParam(value = "query", required = false)
                 String queryString,
