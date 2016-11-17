@@ -5,7 +5,7 @@
   <artifactId>eubon-utis</artifactId>
   <packaging>war</packaging>
 
-  <version>1.2.0</version>
+  <version>1.2.1-SNAPSHOT</version>
   <name>UTIS web application</name>
   <url>http://maven.apache.org</url>
 
