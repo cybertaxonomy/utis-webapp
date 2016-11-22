@@ -1,6 +1,7 @@
 body.swagger-section #header {
   padding:0 50px;
   background-color:#34998a;
+  height: inherit !important;
 }
 
 #header #banner{
