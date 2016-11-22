@@ -29,6 +29,7 @@ import org.cybertaxonomy.utis.checklist.BgbmEditClient;
 import org.cybertaxonomy.utis.checklist.ClassificationAction;
 import org.cybertaxonomy.utis.checklist.DRFChecklistException;
 import org.cybertaxonomy.utis.checklist.EUNIS_Client;
+import org.cybertaxonomy.utis.checklist.GBIFBackboneClient;
 import org.cybertaxonomy.utis.checklist.GBIFBetaBackboneClient;
 import org.cybertaxonomy.utis.checklist.PESIClient;
 import org.cybertaxonomy.utis.checklist.PlaziClient;
@@ -80,6 +81,14 @@ public class UtisController {
 
     private final List<ServiceProviderInfo> defaultProviders = new ArrayList<ServiceProviderInfo>();
 
+    private final static Map<String, String> disabledClients = new HashMap<>();
+
+    static {
+        disabledClients.put(GBIFBetaBackboneClient.class.getSimpleName(), "since this is broken");
+        disabledClients.put(EUNIS_Client.class.getSimpleName(), "for testing");
+        disabledClients.put(PlaziClient.class.getSimpleName(), "for testing");
+    }
+
     public UtisController() throws ClassNotFoundException {
         initProviderMap();
     }
@@ -114,8 +123,9 @@ public class UtisController {
 
         for(Class<BaseChecklistClient> clientClass: checklistClients){
 
-            if(GBIFBetaBackboneClient.class.isAssignableFrom(clientClass)) {
-                logger.debug("Skipping GBIFBetaBackboneClient since this is broken");
+            String simpleName = clientClass.getSimpleName();
+            if(disabledClients.containsKey(simpleName)) {
+                logger.debug("Skipping " + simpleName + " " + disabledClients.get(simpleName));
                 continue;
             }
             BaseChecklistClient client;
@@ -138,11 +148,11 @@ public class UtisController {
         }
 
         defaultProviders.add(serviceProviderInfoMap.get(PESIClient.ID));
-        defaultProviders.add(serviceProviderInfoMap.get(EUNIS_Client.ID));
+        //defaultProviders.add(serviceProviderInfoMap.get(EUNIS_Client.ID));
         defaultProviders.add(serviceProviderInfoMap.get(BgbmEditClient.ID));
         defaultProviders.add(serviceProviderInfoMap.get(WoRMSClient.ID));
-        defaultProviders.add(serviceProviderInfoMap.get(PlaziClient.ID));
-        //defaultProviders.add(serviceProviderInfoMap.get(GBIFBackboneClient.ID));
+        //defaultProviders.add(serviceProviderInfoMap.get(PlaziClient.ID));
+        defaultProviders.add(serviceProviderInfoMap.get(GBIFBackboneClient.ID));
     }
 
     /**
