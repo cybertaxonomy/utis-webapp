@@ -175,17 +175,19 @@ public class UtisController {
                 }
 
                 if(serviceProviderInfoMap.containsKey(id)){
-                     ServiceProviderInfo provider = serviceProviderInfoMap.get(id);
+                     ServiceProviderInfo providerInfo = serviceProviderInfoMap.get(id);
                     if(!subproviderIds.isEmpty()){
+                        // clone it
+                        providerInfo = new ServiceProviderInfo(providerInfo);
                         Collection<ServiceProviderInfo> removeCandidates = new ArrayList<ServiceProviderInfo>();
-                        for(ServiceProviderInfo subProvider : provider.getSubChecklists()){
+                        for(ServiceProviderInfo subProvider : providerInfo.getSubChecklists()){
                             if(!subproviderIds.contains(subProvider.getId())){
                                 removeCandidates.add(subProvider);
                             }
                         }
-                        provider.getSubChecklists().removeAll(removeCandidates);
+                        providerInfo.getSubChecklists().removeAll(removeCandidates);
                     }
-                    providerList.add(provider);
+                    providerList.add(providerInfo);
                 }
             }
             if(providerList.isEmpty()){
@@ -200,7 +202,7 @@ public class UtisController {
     private List<String> parsSubproviderIds(String id) {
 
         List<String> subIds = new ArrayList<String>();
-        Pattern pattern = Pattern.compile("^.*\\[([\\w,]*)\\]$");
+        Pattern pattern = Pattern.compile("^.*\\[([\\w\\-,]*)\\]$");
 
         Matcher m = pattern.matcher(id);
         if (m.matches()) {
@@ -229,6 +231,7 @@ public class UtisController {
                BaseChecklistClient client = clientFactory.newClient(clientClassMap.get(info.getId()));
                if(client != null){
                    logger.debug("sending query to " + info.getId());
+                   client.setChecklistInfo(info);
                    ChecklistClientRunner runner = new ChecklistClientRunner(client, tnrMsg);
                    runner.start();
                    runners.add(runner);
