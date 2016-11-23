@@ -18,6 +18,7 @@ import javax.servlet.ServletContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cybertaxonomy.utis.tnr.msg.TnrMsg;
+import org.cybertaxonomy.utis.utils.VersionInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -191,12 +192,13 @@ public class SpringMVCConfig extends WebMvcConfigurerAdapter {
        // which matches anything and hence all RequestMappings. Here we define it explicitly
       return new SwaggerSpringMvcPlugin(this.springSwaggerConfig)
               .apiInfo(apiInfo()).
-              includePatterns(".*?");
+              includePatterns(".*?").
+              apiVersion(VersionInfo.version());
    }
 
    private ApiInfo apiInfo() {
      ApiInfo apiInfo = new ApiInfo("EU BON UTIS",
-            "The Unified Taxonomic Information Service (UTIS) is the taxonomic backbone for the EU-BON project",
+            "The Unified Taxonomic Information Service (UTIS) is the taxonomic backbone for the EU-BON project.",
             "https://www.biodiversitycatalogue.org/services/79", "EditSupport@bgbm.org",
             "Mozilla Public License 2.0", "http://www.mozilla.org/MPL/2.0/");
      return apiInfo;

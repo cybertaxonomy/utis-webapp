@@ -5,7 +5,7 @@
   <artifactId>eubon-utis</artifactId>
   <packaging>war</packaging>
 
-  <version>1.0</version>
+  <version>1.2.1</version>
   <name>UTIS web application</name>
   <url>http://maven.apache.org</url>
 
@@ -13,7 +13,7 @@
     <spring.version>3.2.7.RELEASE</spring.version>
     <jackson.version>2.2.3</jackson.version>
     <java.codelevel>1.6</java.codelevel>
-    <utis-core.version>1.2.0-SNAPSHOT</utis-core.version>
+    <utis-core.version>${project.version}</utis-core.version>
   </properties>
 
   <repositories>
@@ -88,7 +88,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <version>4.11</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -138,6 +138,32 @@
             <source>${java.codelevel}</source>
             <target>${java.codelevel}</target>
             <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>2.6</version>
+        <configuration>
+          <webResources>
+              <resource>
+                <!-- replace the project-version placeholder in html files
+                  file. This property can then be used to retrieve the version number in the 
+                  Bootloader -->
+                <filtering>true</filtering>
+                <directory>src/main/webapp</directory>
+                <includes>
+                  <include>index.html</include>
+                </includes>
+              </resource>
+              <resource>
+                <!-- all other files in classes -->
+                <directory>src/main/webapp</directory>
+                <excludes>
+                  <exclude>index.html</exclude>
+                </excludes>
+              </resource>
+            </webResources>
         </configuration>
       </plugin>
       <plugin>
