@@ -9,6 +9,8 @@
 */
 package org.bgbm.utis.configuration;
 
+import static springfox.documentation.builders.PathSelectors.regex;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -18,7 +20,6 @@ import javax.servlet.ServletContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cybertaxonomy.utis.tnr.msg.TnrMsg;
-import org.cybertaxonomy.utis.utils.VersionInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -40,10 +41,11 @@ import org.springframework.web.servlet.view.XmlViewResolver;
 import org.springframework.web.servlet.view.json.MappingJacksonJsonView;
 import org.springframework.web.servlet.view.xml.MarshallingView;
 
-import com.mangofactory.swagger.configuration.SpringSwaggerConfig;
-import com.mangofactory.swagger.plugin.EnableSwagger;
-import com.mangofactory.swagger.plugin.SwaggerSpringMvcPlugin;
-import com.wordnik.swagger.model.ApiInfo;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.Contact;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 /**
  * @author a.kohlbecker
@@ -57,7 +59,7 @@ import com.wordnik.swagger.model.ApiInfo;
         "com.mangofactory.swagger.controllers",
         "org.bgbm.utis.controller"
         })
-@EnableSwagger
+@EnableSwagger2
 public class SpringMVCConfig extends WebMvcConfigurerAdapter {
 
     public static final String[] WEB_JAR_RESOURCE_PATTERNS = {"css/", "images/", "lib/", "swagger-ui.js"};
@@ -69,8 +71,6 @@ public class SpringMVCConfig extends WebMvcConfigurerAdapter {
 
     @Autowired
     protected ServletContext servletContext;
-
-    private SpringSwaggerConfig springSwaggerConfig;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -155,7 +155,6 @@ public class SpringMVCConfig extends WebMvcConfigurerAdapter {
 
        final Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
 
-
        marshaller.setPackagesToScan(new String[]{TnrMsg.class.getPackage().getName()});
 
        return new ViewResolver() {
@@ -170,37 +169,27 @@ public class SpringMVCConfig extends WebMvcConfigurerAdapter {
        };
    }
 
-
-
     // -------- Swagger configuration ------------ //
 
-   /**
-    * Required to autowire SpringSwaggerConfig
-    */
-   @Autowired
-   public void setSpringSwaggerConfig(SpringSwaggerConfig springSwaggerConfig) {
-      this.springSwaggerConfig = springSwaggerConfig;
-   }
-
-   /**
-    * Every SwaggerSpringMvcPlugin bean is picked up by the swagger-mvc framework - allowing for multiple
-    * swagger groups i.e. same code base multiple swagger resource listings.
-    */
    @Bean
-   public SwaggerSpringMvcPlugin customImplementation(){
-       // includePatterns: If not supplied a single pattern ".*?" is used by SwaggerSpringMvcPlugin
-       // which matches anything and hence all RequestMappings. Here we define it explicitly
-      return new SwaggerSpringMvcPlugin(this.springSwaggerConfig)
-              .apiInfo(apiInfo()).
-              includePatterns(".*?").
-              apiVersion(VersionInfo.version());
+   public Docket customImplementation(){
+       return new Docket(DocumentationType.SWAGGER_2)
+               .select()
+               .paths(regex("/.*"))
+               .build()
+               .apiInfo(apiInfo());
    }
 
    private ApiInfo apiInfo() {
-     ApiInfo apiInfo = new ApiInfo("EU BON UTIS",
-            "The Unified Taxonomic Information Service (UTIS) is the taxonomic backbone for the EU-BON project.",
-            "https://www.biodiversitycatalogue.org/services/79", "EditSupport@bgbm.org",
-            "Mozilla Public License 2.0", "http://www.mozilla.org/MPL/2.0/");
+
+     ApiInfo apiInfo = new ApiInfo(
+             "EU BON UTIS",
+             "The Unified Taxonomic Information Service (UTIS) is the taxonomic backbone for the EU-BON project.",
+             "1.2", //TODO obtain generically?
+             "https://www.biodiversitycatalogue.org/services/79",
+             new Contact(null, null, "EditSupport@bgbm.org"),
+             "Mozilla Public License 2.0",
+             "http://www.mozilla.org/MPL/2.0/");
      return apiInfo;
    }
 
