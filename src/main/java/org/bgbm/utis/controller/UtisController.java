@@ -85,8 +85,8 @@ public class UtisController {
 
     static {
         disabledClients.put(GBIFBetaBackboneClient.class.getSimpleName(), "since this is broken");
-        disabledClients.put(EUNIS_Client.class.getSimpleName(), "for testing");
-        disabledClients.put(PlaziClient.class.getSimpleName(), "for testing");
+//        disabledClients.put(EUNIS_Client.class.getSimpleName(), "for testing");
+//        disabledClients.put(PlaziClient.class.getSimpleName(), "for testing");
     }
 
     public UtisController() throws ClassNotFoundException {
