@@ -147,12 +147,24 @@ public class UtisController {
             }
         }
 
-        defaultProviders.add(serviceProviderInfoMap.get(PESIClient.ID));
-        //defaultProviders.add(serviceProviderInfoMap.get(EUNIS_Client.ID));
-        defaultProviders.add(serviceProviderInfoMap.get(BgbmEditClient.ID));
-        defaultProviders.add(serviceProviderInfoMap.get(WoRMSClient.ID));
-        //defaultProviders.add(serviceProviderInfoMap.get(PlaziClient.ID));
-        defaultProviders.add(serviceProviderInfoMap.get(GBIFBackboneClient.ID));
+        if(!disabledClients.containsKey(PESIClient.class.getName())){
+            defaultProviders.add(serviceProviderInfoMap.get(PESIClient.ID));
+        }
+        if(!disabledClients.containsKey(EUNIS_Client.class.getName())){
+            defaultProviders.add(serviceProviderInfoMap.get(EUNIS_Client.ID));
+        }
+        if(!disabledClients.containsKey(BgbmEditClient.class.getName())){
+            defaultProviders.add(serviceProviderInfoMap.get(BgbmEditClient.ID));
+        }
+        if(!disabledClients.containsKey(WoRMSClient.class.getName())){
+            defaultProviders.add(serviceProviderInfoMap.get(WoRMSClient.ID));
+        }
+        if(!disabledClients.containsKey(PlaziClient.class.getName())){
+            defaultProviders.add(serviceProviderInfoMap.get(PlaziClient.ID));
+        }
+        if(!disabledClients.containsKey(GBIFBackboneClient.class.getName())){
+            defaultProviders.add(serviceProviderInfoMap.get(GBIFBackboneClient.ID));
+        }
     }
 
     /**
