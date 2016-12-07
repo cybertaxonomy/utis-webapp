@@ -58,7 +58,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.wordnik.swagger.annotations.ApiParam;
+
+import io.swagger.annotations.ApiParam;
 
 /**
  * @author a.kohlbecker
@@ -67,7 +68,7 @@ import com.wordnik.swagger.annotations.ApiParam;
  */
 
 @Controller
-@RequestMapping(produces={"application/json","application/xml"}) // produces is needed for swagger)
+@RequestMapping(produces={"application/json"}) // produces is needed for swagger) // "application/xml" disabled due to problems with /capabilities
 public class UtisController {
 
     private static final int MIN_QUERY_STRING_LEN = 3;
