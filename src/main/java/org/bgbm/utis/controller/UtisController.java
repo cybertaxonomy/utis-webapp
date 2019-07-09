@@ -463,7 +463,7 @@ public class UtisController {
 
         List<ServiceProviderInfo> providerList = createProviderList(providers, response);
 
-        TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(queryString, searchMode, addSynonymy, addParentTaxon, null, null);
+        TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(queryString, searchMode, addSynonymy, addParentTaxon, pageIndex, pageSize);
 
         executeTnrRequest(timeout, providerList, tnrMsg, dedupHashProvider);
         return tnrMsg;
