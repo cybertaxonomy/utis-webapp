@@ -32,6 +32,7 @@ import org.cybertaxonomy.utis.checklist.EUNIS_Client;
 import org.cybertaxonomy.utis.checklist.GBIFBackboneClient;
 import org.cybertaxonomy.utis.checklist.GBIFBetaBackboneClient;
 import org.cybertaxonomy.utis.checklist.PESIClient;
+import org.cybertaxonomy.utis.checklist.PhycobankClient;
 import org.cybertaxonomy.utis.checklist.PlaziClient;
 import org.cybertaxonomy.utis.checklist.SearchMode;
 import org.cybertaxonomy.utis.checklist.WoRMSClient;
@@ -86,8 +87,14 @@ public class UtisController {
 
     static {
         disabledClients.put(GBIFBetaBackboneClient.class.getSimpleName(), "since this is broken");
-        disabledClients.put(EUNIS_Client.class.getSimpleName(), "for testing");
-        disabledClients.put(PlaziClient.class.getSimpleName(), "for testing");
+        if(System.getProperty("excludedClients") != null){
+            for(String clientID : System.getProperty("excludedClients").split(",\\s*")){
+                disabledClients.put(clientID, "developer mode");
+            }
+        }
+       // disabledClients.put(EUNIS_Client.class.getSimpleName(), "for testing");
+       // disabledClients.put(PlaziClient.class.getSimpleName(), "for testing");
+       // disabledClients.put(GBIFBackboneClient.class.getSimpleName(), "for testing");
     }
 
     public UtisController() throws ClassNotFoundException {
@@ -165,6 +172,9 @@ public class UtisController {
         }
         if(!disabledClients.containsKey(GBIFBackboneClient.class.getName())){
             defaultProviders.add(serviceProviderInfoMap.get(GBIFBackboneClient.ID));
+        }
+        if(!disabledClients.containsKey(PhycobankClient.class.getName())){
+            defaultProviders.add(serviceProviderInfoMap.get(PhycobankClient.ID));
         }
     }
 

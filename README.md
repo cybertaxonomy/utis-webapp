@@ -34,8 +34,33 @@ swagger api-doc REST service at:
 swagger ui at:
 * http://127.0.0.1:8080/eubon-utis/doc/
 
-Developer Notes
+Development
 --------------------
+
+## Running in dev mode
+
+UTIS can be configuired for easier development. This encompasses two java system properties which can be specifed by passing environment variables to the jvm:
+
+
+### `excludedClients`
+
+    -DexcludedClients=[clientIDs comma separated]
+    
+The client adapters identified by their clientID will be disabled. See `org.bgbm.utis.controller.UtisController` line 9ff for implementation details.
+
+e.g:
+     
+    -DexcludedClients=eunis,gbif,plazi
+    
+will disable the named clients "eunis,gbif,plazi" which have time and cpu consuming startup phases.
+
+### `skipStoreUpdating`
+
+This option will cause the `org.cybertaxonomy.utis.store.Neo4jStoreUpdater` to completely skip the continiuous updating of the the cached data which 
+is otherwise fetched from the source on a periodic base:
+
+    -DskipStoreUpdating
+
 
 ## Using swagger
 
