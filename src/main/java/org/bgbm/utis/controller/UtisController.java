@@ -429,14 +429,22 @@ public class UtisController {
                             + "Turning this option on may cause a slightly increased response time.")
                     @RequestParam(value = "addParentTaxon", required = false, defaultValue="false")
                 Boolean addParentTaxon,
-                @ApiParam(value = "Allows to deduplicate the resuls by making use of a deduplication strategy. "
+                    @ApiParam(value="The size of the result page returned by each of the check lists. This only affects the search mode "
+                            + "scientificNameLike and vernacularNameLike other search modes are expected to return only one record per check lists.")
+                    @RequestParam(value="pageSize", required=false, defaultValue="20")
+                Integer pageSize,
+                    @ApiParam(value="The 0-based index of the result page returned by each of the check lists. This only affects the search mode "
+                            + "scientificNameLike and vernacularNameLike other search modes are expected to return only one record per check lists.")
+                    @RequestParam(value="pageIndex", required=false, defaultValue="0")
+                Integer pageIndex,
+                    @ApiParam(value = "Allows to deduplicate the resuls by making use of a deduplication strategy. "
                         + "The deduplication is done by comparing specific properties of the"
                         + " taxon:\n"
                         + "- id: compares 'taxon.identifier'\n"
                         + "- id_name: compares 'taxon.identifier' AND 'taxon.taxonName.scientificName'\n"
                         + "- name: compares 'taxon.taxonName.scientificName'\n"
                         + "Using the pure 'name' strategy is not recommended.")
-                @RequestParam(value = "dedup", required = false)
+                    @RequestParam(value = "dedup", required = false)
                 DeduplicationHashProvider dedupHashProvider,
                     @ApiParam(value = "The maximum of milliseconds to wait for responses from any of the providers. "
                             + "If the timeout is exceeded the service will jut return the resonses that have been "
@@ -455,7 +463,7 @@ public class UtisController {
 
         List<ServiceProviderInfo> providerList = createProviderList(providers, response);
 
-        TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(queryString, searchMode, addSynonymy, addParentTaxon);
+        TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(queryString, searchMode, addSynonymy, addParentTaxon, null, null);
 
         executeTnrRequest(timeout, providerList, tnrMsg, dedupHashProvider);
         return tnrMsg;
@@ -519,7 +527,7 @@ public class UtisController {
 
        List<ServiceProviderInfo> providerList = createProviderList(providers, response);
 
-       TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, ClassificationAction.higherClassification, false, false);
+       TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, ClassificationAction.higherClassification, false, false, null, null);
 
        executeTnrRequest(timeout, providerList, tnrMsg, null);
 
@@ -562,7 +570,7 @@ public class UtisController {
 
        List<ServiceProviderInfo> providerList = createProviderList(providers, response);
 
-       TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, ClassificationAction.taxonomicChildren, false, false);
+       TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, ClassificationAction.taxonomicChildren, false, false, null, null);
 
        executeTnrRequest(timeout, providerList, tnrMsg, null);
 
