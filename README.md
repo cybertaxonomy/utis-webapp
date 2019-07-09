@@ -44,15 +44,15 @@ UTIS can be configuired for easier development. This encompasses two java system
 
 ### `excludedClients`
 
-    -DexcludedClients=[clientIDs comma separated]
+    -DexcludedClients=[Client class simple names comma separated]
     
-The client adapters identified by their clientID will be disabled. See `org.bgbm.utis.controller.UtisController` line 9ff for implementation details.
+The client adapters identified by their simple class name will be disabled. See `org.bgbm.utis.controller.UtisController` line 9ff for implementation details.
 
 e.g:
      
-    -DexcludedClients=eunis,gbif,plazi
+    -DexcludedClients=EUNIS_Client,GBIFBackboneClient,PlaziClient
     
-will disable the named clients "eunis,gbif,plazi" which have time and cpu consuming startup phases.
+will disable the named clients "EUNIS_Client,GBIFBackboneClient,PlaziClient" which have time and cpu consuming startup phases.
 
 ### `skipStoreUpdating`
 

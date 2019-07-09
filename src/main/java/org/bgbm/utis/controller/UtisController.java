@@ -74,7 +74,7 @@ public class UtisController {
 
     private static final int MIN_QUERY_STRING_LEN = 3;
 
-    protected Logger logger = LoggerFactory.getLogger(UtisController.class);
+    private final static Logger logger = LoggerFactory.getLogger(UtisController.class);
 
     private Map<String, ServiceProviderInfo> serviceProviderInfoMap;
     private Map<String, Class<? extends BaseChecklistClient>> clientClassMap;
@@ -88,13 +88,19 @@ public class UtisController {
     static {
         disabledClients.put(GBIFBetaBackboneClient.class.getSimpleName(), "since this is broken");
         if(System.getProperty("excludedClients") != null){
+            // for quicker startup during development you may want to set
+            // -DexcludedClients=EUNIS_Client,GBIFBackboneClient,PlaziClient
+            logger.info("**********************************************");
+
+            logger.info("   excluding clients:");
             for(String clientID : System.getProperty("excludedClients").split(",\\s*")){
                 disabledClients.put(clientID, "developer mode");
+                logger.info("     - " + clientID);
             }
+
+            logger.info("**********************************************");
         }
-       // disabledClients.put(EUNIS_Client.class.getSimpleName(), "for testing");
-       // disabledClients.put(PlaziClient.class.getSimpleName(), "for testing");
-       // disabledClients.put(GBIFBackboneClient.class.getSimpleName(), "for testing");
+
     }
 
     public UtisController() throws ClassNotFoundException {
