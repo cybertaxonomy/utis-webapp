@@ -11,11 +11,10 @@
 -->
 <Configuration>
   <Properties>
-    <Property name="log-path">logs</Property>
     <!-- 
         The ${contextPath} property is provieded by the ContextDependentInitializer which must be configured as listener in the web.xml
     -->
-    <Property name="log-file-base">logs/${sys:contextPath}-utis</Property>
+    <Property name="log-file-base">log/utis/${sys:contextPath}</Property>
   </Properties>
   <Appenders>
     <Console name="STDOUT" target="SYSTEM_OUT">

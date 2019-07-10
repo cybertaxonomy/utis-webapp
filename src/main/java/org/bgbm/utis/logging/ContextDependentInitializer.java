@@ -23,7 +23,7 @@ public class ContextDependentInitializer implements ServletContextListener {
     public void contextInitialized(ServletContextEvent event) {
         ServletContext context = event.getServletContext();
         String contextPath = context.getContextPath();
-        System.setProperty("contextPath", contextPath + "1.1");
+        System.setProperty("contextPath", contextPath.isEmpty() ? "rootContext" : contextPath);
     }
 
     /**
