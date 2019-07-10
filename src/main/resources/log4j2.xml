@@ -2,19 +2,20 @@
 <!--
 #
 #
-# If you are having problems with logging you may debug Log4J initialization,
+# If you are having problems with logging you may debug Log4j2 initialization,
 # start the application with a system property log4j.configDebug set to "true".
 # E.g.:
 #
-#     java -Dlog4j.configDebug=true
+#     java -Dlog4j2.debug
 #
 -->
 <Configuration>
   <Properties>
     <!-- 
-        The ${contextPath} property is provieded by the ContextDependentInitializer which must be configured as listener in the web.xml
+        The ${sys:logFolder}, ${sys:contextPath} properties are provieded by the 
+        ContextDependentInitializer which must be configured as listener in the web.xml
     -->
-    <Property name="log-file-base">log/utis/${sys:contextPath}</Property>
+    <Property name="log-file-base">${sys:logFolder}/${sys:contextPath}</Property>
   </Properties>
   <Appenders>
     <Console name="STDOUT" target="SYSTEM_OUT">
