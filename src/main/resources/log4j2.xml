@@ -21,13 +21,13 @@
       -->
     </Console>
     <!-- 
+    -->
     <RollingFile name="file-log" fileName="${log-path}/utis.log" filePattern="${log-path}/utis-%d{yyyy-MM-dd}.log">
       <PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n"/>
       <Policies>
       <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
       </Policies>
     </RollingFile>
-    -->
   </Appenders>
   <Loggers>
     <Logger name="org.apache.log4j.xml" level="info"/>
