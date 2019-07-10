@@ -17,8 +17,6 @@ import java.util.Locale;
 
 import javax.servlet.ServletContext;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.cybertaxonomy.utis.tnr.msg.TnrMsg;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -67,8 +65,6 @@ public class SpringMVCConfig extends WebMvcConfigurerAdapter {
     public static final String WEB_JAR_VIEW_RESOLVER_PREFIX = "classpath:/resources/";
     public static final String WEB_JAR_VIEW_RESOLVER_SUFFIX = ".jsp";
 
-    private static final Logger log = LogManager.getLogger(SpringMVCConfig.class.getName());
-
     @Autowired
     protected ServletContext servletContext;
 
@@ -106,8 +102,6 @@ public class SpringMVCConfig extends WebMvcConfigurerAdapter {
      */
    @Bean
    public ViewResolver contentNegotiatingViewResolver(ContentNegotiationManager manager) {
-
-       log.info("CNVR");
 
      // Define the view resolvers
        List<ViewResolver> resolvers = new ArrayList<ViewResolver>();

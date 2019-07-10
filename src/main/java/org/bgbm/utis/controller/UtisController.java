@@ -365,6 +365,7 @@ public class UtisController {
 
     @RequestMapping(method = { RequestMethod.GET }, value = "/capabilities")
     public @ResponseBody List<ServiceProviderInfo> capabilities(HttpServletRequest request, HttpServletResponse response) {
+        logger.info(requestPathAndQuery(request));
         return defaultProviders;
     }
 
@@ -457,6 +458,7 @@ public class UtisController {
             ) throws DRFChecklistException, JsonGenerationException, JsonMappingException,
             IOException {
 
+        logger.info(requestPathAndQuery(request));
         if(queryString.length() < MIN_QUERY_STRING_LEN) {
             throw new MinQueryStringException();
         }
@@ -524,7 +526,7 @@ public class UtisController {
            ) throws DRFChecklistException, JsonGenerationException, JsonMappingException,
            IOException {
 
-
+       logger.info(requestPathAndQuery(request));
        List<ServiceProviderInfo> providerList = createProviderList(providers, response);
 
        TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, ClassificationAction.higherClassification, false, false, null, null);
@@ -567,7 +569,7 @@ public class UtisController {
            ) throws DRFChecklistException, JsonGenerationException, JsonMappingException,
            IOException {
 
-
+       logger.info(requestPathAndQuery(request));
        List<ServiceProviderInfo> providerList = createProviderList(providers, response);
 
        TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, ClassificationAction.taxonomicChildren, false, false, null, null);
@@ -577,5 +579,25 @@ public class UtisController {
        return tnrMsg;
    }
 
+   /**
+    * Returns the HTTP request path and query parameters as string
+    *
+    * @param request
+    * @return request path and query parameters as string.
+    */
+   protected static String requestPathAndQuery(HttpServletRequest request) {
+       if(request == null) {
+           return "";
+       }
+       StringBuilder b = new StringBuilder();
+       b.append(request.getMethod()).append(": ");
+       b.append(request.getRequestURI());
+       String query = request.getQueryString();
+       if(query != null) {
+           b.append("?").append(query);
+       }
+
+       return b.toString();
+   }
 
 }

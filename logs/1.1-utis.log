@@ -1,0 +1,10 @@
+2019-07-10 17:21:21,978 INFO  [main] controller.UtisController - **********************************************
+2019-07-10 17:21:21,985 INFO  [main] controller.UtisController -    excluding clients:
+2019-07-10 17:21:21,985 INFO  [main] controller.UtisController -      - EUNIS_Client
+2019-07-10 17:21:21,986 INFO  [main] controller.UtisController -      - GBIFBackboneClient
+2019-07-10 17:21:21,986 INFO  [main] controller.UtisController -      - PlaziClient
+2019-07-10 17:21:21,986 INFO  [main] controller.UtisController - **********************************************
+2019-07-10 17:21:23,252 INFO  [main] plugins.DocumentationPluginsBootstrapper - Context refreshed
+2019-07-10 17:21:23,288 INFO  [main] plugins.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
+2019-07-10 17:21:23,313 INFO  [main] scanners.ApiListingReferenceScanner - Scanning for api listing references
+2019-07-10 17:21:27,759 INFO  [qtp1989000009-23] controller.UtisController - GET: /search?providers=bgbm-phycobank&query=Navicula&searchMode=scientificNameLike&pageIndex=0&pageSize=50

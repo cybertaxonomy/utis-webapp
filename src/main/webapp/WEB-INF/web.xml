@@ -23,6 +23,10 @@
     <url-pattern>/</url-pattern>
   </servlet-mapping>
 
+  <listener>
+        <listener-class>org.bgbm.utis.logging.ContextDependentInitializer</listener-class>
+  </listener>
+    
   <filter>
     <filter-name>charsetFilter</filter-name>
     <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>

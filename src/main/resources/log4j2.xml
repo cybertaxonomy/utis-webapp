@@ -11,7 +11,11 @@
 -->
 <Configuration>
   <Properties>
-    <Property name="log-path">/var/log/jetty8</Property>
+    <Property name="log-path">logs</Property>
+    <!-- 
+        The ${contextPath} property is provieded by the ContextDependentInitializer which must be configured as listener in the web.xml
+    -->
+    <Property name="log-file-base">logs/${sys:contextPath}-utis</Property>
   </Properties>
   <Appenders>
     <Console name="STDOUT" target="SYSTEM_OUT">
@@ -22,8 +26,8 @@
     </Console>
     <!-- 
     -->
-    <RollingFile name="file-log" fileName="${log-path}/utis.log" filePattern="${log-path}/utis-%d{yyyy-MM-dd}.log">
-      <PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n"/>
+    <RollingFile name="file-log" fileName="${log-file-base}.log" filePattern="${log-file-base}-%d{yyyy-MM-dd}.log">
+      <PatternLayout pattern="%d %-5p [%t] %C{2} - %m%n"/>
       <Policies>
       <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
       </Policies>
@@ -38,9 +42,7 @@
     <Logger name="org.springframework.web.servlet.view" level="error"/>
     <Root level="info">
       <AppenderRef ref="STDOUT"/>
-      <!-- 
       <AppenderRef ref="file-log"/> 
-      -->
     </Root>
   </Loggers>
 </Configuration>
