@@ -34,6 +34,13 @@ swagger api-doc REST service at:
 swagger ui at:
 * http://127.0.0.1:8080/eubon-utis/doc/
 
+Logfiles
+-----------------------------
+
+Since version 1.3 on linux systems the logfiles are located at `/var/log/utis`. Previous versions of utis put the logfiles in `/var/log/jetty8`.
+The `ContextDependentInitializer` may choose to place the logs into another  directory if it is not possible to write the logs into `/var/log/utis`. 
+Please refer to this class for further details.
+
 Development
 --------------------
 
