@@ -30,7 +30,6 @@ import org.cybertaxonomy.utis.checklist.ClassificationAction;
 import org.cybertaxonomy.utis.checklist.DRFChecklistException;
 import org.cybertaxonomy.utis.checklist.EUNIS_Client;
 import org.cybertaxonomy.utis.checklist.GBIFBackboneClient;
-import org.cybertaxonomy.utis.checklist.GBIFBetaBackboneClient;
 import org.cybertaxonomy.utis.checklist.PESIClient;
 import org.cybertaxonomy.utis.checklist.PhycobankClient;
 import org.cybertaxonomy.utis.checklist.PlaziClient;
@@ -86,7 +85,6 @@ public class UtisController {
     private final static Map<String, String> disabledClients = new HashMap<>();
 
     static {
-        disabledClients.put(GBIFBetaBackboneClient.class.getSimpleName(), "since this is broken");
         if(System.getProperty("excludedClients") != null){
             // for quicker startup during development you may want to set
             // -DexcludedClients=EUNIS_Client,GBIFBackboneClient,PlaziClient
