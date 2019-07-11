@@ -192,6 +192,7 @@ public class UtisController {
      */
     private List<ServiceProviderInfo> createProviderList(String providers, HttpServletResponse response)
             throws IOException {
+
         List<ServiceProviderInfo> providerList = defaultProviders;
         if (providers != null) {
             String[] providerIdTokens = providers.split(",");
@@ -208,13 +209,26 @@ public class UtisController {
                     if(!subproviderIds.isEmpty()){
                         // clone it
                         providerInfo = new ServiceProviderInfo(providerInfo);
-                        Collection<ServiceProviderInfo> removeCandidates = new ArrayList<ServiceProviderInfo>();
-                        for(ServiceProviderInfo subProvider : providerInfo.getSubChecklists()){
-                            if(!subproviderIds.contains(subProvider.getId())){
-                                removeCandidates.add(subProvider);
+                        Collection<ServiceProviderInfo> subchecklistSelection = new ArrayList<ServiceProviderInfo>();
+
+                        for(String subproviderID : subproviderIds){
+                            boolean added = false;
+                            for(ServiceProviderInfo subChecklist : providerInfo.getSubChecklists()){
+                                if(subChecklist.getId().equals(subproviderID)){
+                                    subchecklistSelection.add(subChecklist);
+                                    added = true;
+                                    break;
+                                }
                             }
+                            if(!added){
+                                // no known subchecklist found, create a new subchecklist, and delegate the handling of unknown
+                                // checklists to the client adapter
+                                subchecklistSelection.add(new ServiceProviderInfo(subproviderID, null, null));
+                            }
+
                         }
-                        providerInfo.getSubChecklists().removeAll(removeCandidates);
+                        providerInfo.getSubChecklists().clear();
+                        providerInfo.getSubChecklists().addAll(subchecklistSelection);
                     }
                     providerList.add(providerInfo);
                 }
@@ -313,22 +327,21 @@ public class UtisController {
 
                    tnrStatus.setStatusMessage("ok");
                    // --- collect the ServiceProviderInfo objects by which the responses will be ordered
-                   List<ServiceProviderInfo> ServiceProviderInfos;
+                   List<ServiceProviderInfo> serviceProviderInfos;
                    if(info.getSubChecklists() != null && !info.getSubChecklists().isEmpty()){
                        // for subchecklists we will have to look for responses of each of the subchecklists
-                       ServiceProviderInfos = info.getSubChecklists();
+                       serviceProviderInfos = info.getSubChecklists();
                    } else {
                        // otherwise we only look for the responses of one checklist
-                       ServiceProviderInfos = new ArrayList<ServiceProviderInfo>(1);
-                       ServiceProviderInfos.add(info);
+                       serviceProviderInfos = new ArrayList<ServiceProviderInfo>(1);
+                       serviceProviderInfos.add(info);
                    }
 
                    // --- order the tnrResponses
-                   for(ServiceProviderInfo subInfo : ServiceProviderInfos){
+                   for(ServiceProviderInfo subInfo : serviceProviderInfos){
                        tnrResponse = null;
                        for(Response tnrr : tnrResponses){
-                           // TODO compare by id, requires model change
-                           if(subInfo.getLabel().equals(tnrr.getChecklist())){
+                           if(subInfo.getId().equals(tnrr.getChecklistId())){
                                tnrResponse = tnrr;
                                tnrStatus.setDuration(BigDecimal.valueOf(runner.getDuration()));
                                tnrResponsesOrdered.add(tnrResponse);
