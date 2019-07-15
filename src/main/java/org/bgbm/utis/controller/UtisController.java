@@ -28,6 +28,7 @@ import org.cybertaxonomy.utis.checklist.BaseChecklistClient;
 import org.cybertaxonomy.utis.checklist.BgbmEditClient;
 import org.cybertaxonomy.utis.checklist.ClassificationAction;
 import org.cybertaxonomy.utis.checklist.DRFChecklistException;
+import org.cybertaxonomy.utis.checklist.DiatomBaseClient;
 import org.cybertaxonomy.utis.checklist.EUNIS_Client;
 import org.cybertaxonomy.utis.checklist.GBIFBackboneClient;
 import org.cybertaxonomy.utis.checklist.PESIClient;
@@ -179,6 +180,9 @@ public class UtisController {
         }
         if(!disabledClients.containsKey(PhycobankClient.class.getName())){
             defaultProviders.add(serviceProviderInfoMap.get(PhycobankClient.ID));
+        }
+        if(!disabledClients.containsKey(DiatomBaseClient.class.getName())){
+            defaultProviders.add(serviceProviderInfoMap.get(DiatomBaseClient.ID));
         }
     }
 
