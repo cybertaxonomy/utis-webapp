@@ -381,6 +381,7 @@ public class UtisController {
     @RequestMapping(method = { RequestMethod.GET }, value = "/capabilities")
     public @ResponseBody List<ServiceProviderInfo> capabilities(HttpServletRequest request, HttpServletResponse response) {
         logger.info(requestPathAndQuery(request));
+        addCORSHeaders(response);
         return defaultProviders;
     }
 
@@ -415,7 +416,7 @@ public class UtisController {
                         +"For example: \"Bellis perennis\", \"Prionus\" or \"Bolinus brandaris\". "
                         + "The search string must have a minimum length of 3 characters."
                         ,required=true)
-                    @RequestParam(value = "query", required = false)
+                    @RequestParam(value = "query", required = true)
                 String queryString,
                     @ApiParam(value = "A list of provider id strings concatenated by comma "
                         +"characters. The default : \"pesi,bgbm-cdm-server[col]\" will be used "
@@ -428,7 +429,7 @@ public class UtisController {
                         + "using the following syntax: parent-id[sub-id-1,sub-id2,...]",
                         defaultValue="pesi,eunis,bgbm-cdm-server[col]",
                         required=false)
-                    @RequestParam(value = "providers", required = false)
+                    @RequestParam(value = "providers", required = true)
                 String providers,
                     @ApiParam(value = "Specifies the searchMode. "
                             + "Possible search modes are: scientificNameExact, scientificNameLike (begins with), vernacularNameExact, "
@@ -474,6 +475,7 @@ public class UtisController {
             IOException {
 
         logger.info(requestPathAndQuery(request));
+        addCORSHeaders(response);
         if(queryString.length() < MIN_QUERY_STRING_LEN) {
             throw new MinQueryStringException();
         }
@@ -542,6 +544,7 @@ public class UtisController {
            IOException {
 
        logger.info(requestPathAndQuery(request));
+       addCORSHeaders(response);
        List<ServiceProviderInfo> providerList = createProviderList(providers, response);
 
        TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, ClassificationAction.higherClassification, false, false, null, null);
@@ -585,6 +588,7 @@ public class UtisController {
            IOException {
 
        logger.info(requestPathAndQuery(request));
+       addCORSHeaders(response);
        List<ServiceProviderInfo> providerList = createProviderList(providers, response);
 
        TnrMsg tnrMsg = TnrMsgUtils.convertStringToTnrMsg(taxonId, ClassificationAction.taxonomicChildren, false, false, null, null);
@@ -613,6 +617,13 @@ public class UtisController {
        }
 
        return b.toString();
+   }
+
+   protected void addCORSHeaders(HttpServletResponse response){
+       response.setHeader("Access-Control-Allow-Origin", "*");
+       response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+       response.setHeader("Access-Control-Max-Age", "3600");
+       response.setHeader("Access-Control-Allow-Headers", "x-requested-with");
    }
 
 }
