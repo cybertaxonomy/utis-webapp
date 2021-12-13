@@ -10,12 +10,18 @@
   <url>http://maven.apache.org</url>
 
   <properties>
+    <java.codelevel>1.8</java.codelevel>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <spring.version>3.2.7.RELEASE</spring.version>
     <jackson.version>2.2.3</jackson.version>
-    <java.codelevel>1.7</java.codelevel>
     <utis-core.version>${project.version}</utis-core.version>
     <log4j.version>[2.15.0,)</log4j.version>
   </properties>
+  
+  <prerequisites>
+    <maven>[3.0.0,)</maven>
+  </prerequisites>
 
   <repositories>
     <!-- current spring source repositories -->
@@ -134,65 +140,73 @@
     <finalName>eubon-utis</finalName>
       <plugins>
         <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
-        <configuration>
-            <source>${java.codelevel}</source>
-            <target>${java.codelevel}</target>
-            <encoding>UTF-8</encoding>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>2.6</version>
-        <configuration>
-          <webResources>
-              <resource>
-                <!-- replace the project-version placeholder in html files
-                  file. This property can then be used to retrieve the version number in the 
-                  Bootloader -->
-                <filtering>true</filtering>
-                <directory>src/main/webapp</directory>
-                <includes>
-                  <include>index.html</include>
-                </includes>
-              </resource>
-              <resource>
-                <!-- all other files in classes -->
-                <directory>src/main/webapp</directory>
-                <excludes>
-                  <exclude>index.html</exclude>
-                </excludes>
-              </resource>
-            </webResources>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.mortbay.jetty</groupId>
-        <artifactId>jetty-maven-plugin</artifactId>
-        <!--
-            Remote debugging:
-                export MAVEN_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,address=4000,server=y,suspend=n"
-                mvn jetty:run 
-         -->
-        <configuration>
-          <war>${basedir}/target/eubon-utis.war</war>
-          <webApp>
-            <contextPath>/eubon-utis</contextPath>
-          </webApp>
-        </configuration>
-      </plugin>
-      <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>3.0.2</version>
+            <configuration>
+                <encoding>${project.build.sourceEncoding}</encoding>
+            </configuration>
+        </plugin>
+        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-eclipse-plugin</artifactId>
-          <version>2.9</version>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.5.1</version>
           <configuration>
-              <downloadSources>true</downloadSources>
-              <downloadJavadocs>true</downloadJavadocs>
+              <source>${java.codelevel}</source>
+              <target>${java.codelevel}</target>
+              <encoding>${project.build.sourceEncoding}</encoding>
           </configuration>
-      </plugin>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-war-plugin</artifactId>
+          <version>2.6</version>
+          <configuration>
+            <webResources>
+                <resource>
+                  <!-- replace the project-version placeholder in html files
+                    file. This property can then be used to retrieve the version number in the 
+                    Bootloader -->
+                  <filtering>true</filtering>
+                  <directory>src/main/webapp</directory>
+                  <includes>
+                    <include>index.html</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <!-- all other files in classes -->
+                  <directory>src/main/webapp</directory>
+                  <excludes>
+                    <exclude>index.html</exclude>
+                  </excludes>
+                </resource>
+              </webResources>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.mortbay.jetty</groupId>
+          <artifactId>jetty-maven-plugin</artifactId>
+          <!--
+              Remote debugging:
+                  export MAVEN_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,address=4000,server=y,suspend=n"
+                  mvn jetty:run 
+           -->
+          <configuration>
+            <war>${basedir}/target/eubon-utis.war</war>
+            <webApp>
+              <contextPath>/eubon-utis</contextPath>
+            </webApp>
+          </configuration>
+        </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-eclipse-plugin</artifactId>
+            <version>2.9</version>
+            <configuration>
+                <downloadSources>true</downloadSources>
+                <downloadJavadocs>true</downloadJavadocs>
+            </configuration>
+        </plugin>
     </plugins>
   </build>
 </project>
