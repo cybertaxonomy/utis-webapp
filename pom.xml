@@ -13,8 +13,8 @@
     <java.codelevel>1.8</java.codelevel>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <spring.version>3.2.7.RELEASE</spring.version>
-    <jackson.version>2.2.3</jackson.version>
+    <spring.version>4.3.30.RELEASE</spring.version>
+    <jackson.version>2.13.0</jackson.version>
     <utis-core.version>${project.version}</utis-core.version>
     <log4j.version>[2.15.0,)</log4j.version>
   </properties>
