@@ -16,7 +16,7 @@
     <spring.version>4.3.30.RELEASE</spring.version>
     <jackson.version>2.13.0</jackson.version>
     <utis-core.version>${project.version}</utis-core.version>
-    <log4j.version>[2.15.0,)</log4j.version>
+    <log4j.version>[2.16.0,)</log4j.version>
   </properties>
   
   <prerequisites>
