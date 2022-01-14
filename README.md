@@ -35,7 +35,8 @@ create a `docker-compose.yaml` file with the following content:
 ~~~
 version: "2.0"
 services:
-    app:
+    utis-jetty:
+        restart: unless-stopped
         image: jetty:9.4-jre8-slim
         ports:
         - "8080:8080"
